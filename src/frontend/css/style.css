@@ -271,6 +271,60 @@ textarea {
     gap: 20px;
 }
 
+/* Language Dropdown */
+.lang-dropdown {
+    position: relative;
+}
+
+.lang-toggle {
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 6px 8px;
+}
+
+.lang-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    min-width: 140px;
+    overflow: hidden;
+}
+
+.lang-menu.open {
+    display: block;
+}
+
+.lang-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #333;
+    transition: background-color 0.15s;
+}
+
+.lang-option:hover {
+    background-color: #f5f7fa;
+}
+
+.lang-flag-icon {
+    border-radius: 2px;
+    vertical-align: middle;
+    flex-shrink: 0;
+}
+
 .user-info {
     display: flex;
     align-items: center;

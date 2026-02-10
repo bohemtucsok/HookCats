@@ -75,6 +75,21 @@ body.dark-mode .btn-icon:hover {
     background-color: var(--bg-tertiary);
 }
 
+/* Language Dropdown Dark Mode */
+body.dark-mode .lang-menu {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .lang-option {
+    color: var(--text-primary);
+}
+
+body.dark-mode .lang-option:hover {
+    background-color: var(--bg-tertiary);
+}
+
 /* Header Dark Mode */
 body.dark-mode .app-header {
     background: var(--bg-secondary);

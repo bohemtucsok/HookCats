@@ -51,9 +51,31 @@
                 <h1>Webhook Admin</h1>
             </div>
             <div class="header-right">
-                <button id="langToggle" class="btn btn-icon" title="Language / Nyelv" onclick="window.i18n.setLanguage(window.i18n.getLanguage() === 'en' ? 'hu' : 'en')">
-                    <span id="langLabel">EN</span>
-                </button>
+                <div class="lang-dropdown">
+                    <button id="langToggle" class="btn btn-icon lang-toggle" title="Language / Nyelv">
+                        <svg id="langFlag" class="lang-flag-icon" viewBox="0 0 640 480" width="24" height="16"></svg>
+                    </button>
+                    <div id="langMenu" class="lang-menu">
+                        <button class="lang-option" data-lang="en">
+                            <svg class="lang-flag-icon" viewBox="0 0 640 480" width="24" height="16">
+                                <rect width="640" height="480" fill="#012169"/>
+                                <path d="M75 0l244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z" fill="#fff"/>
+                                <path d="M424 281l216 159v40L369 281h55zm-184 20l6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z" fill="#C8102E"/>
+                                <path d="M241 0v480h160V0H241zM0 160v160h640V160H0z" fill="#fff"/>
+                                <path d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z" fill="#C8102E"/>
+                            </svg>
+                            <span>English</span>
+                        </button>
+                        <button class="lang-option" data-lang="hu">
+                            <svg class="lang-flag-icon" viewBox="0 0 640 480" width="24" height="16">
+                                <rect width="640" height="160" fill="#CE2939"/>
+                                <rect width="640" height="160" y="160" fill="#fff"/>
+                                <rect width="640" height="160" y="320" fill="#477050"/>
+                            </svg>
+                            <span>Magyar</span>
+                        </button>
+                    </div>
+                </div>
                 <button id="themeToggle" class="btn btn-icon" data-i18n-title="header.theme_toggle" title="Toggle dark mode">
                     <i class="fas fa-moon"></i>
                 </button>
@@ -824,15 +846,42 @@
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <script src="js/i18n.js"></script> <!-- i18n FIRST - translations must be available to all modules -->
     <script>
-        // Initialize i18n immediately, update language toggle label
+        const langFlagSVG = {
+            en: '<rect width="640" height="480" fill="#012169"/><path d="M75 0l244 181L562 0h78v62L400 241l240 178v61h-80L320 301 81 480H0v-60l239-178L0 64V0h75z" fill="#fff"/><path d="M424 281l216 159v40L369 281h55zm-184 20l6 35L54 480H0l240-179zM640 0v3L391 191l2-44L590 0h50zM0 0l239 176h-60L0 42V0z" fill="#C8102E"/><path d="M241 0v480h160V0H241zM0 160v160h640V160H0z" fill="#fff"/><path d="M0 193v96h640v-96H0zM273 0v480h96V0h-96z" fill="#C8102E"/>',
+            hu: '<rect width="640" height="160" fill="#CE2939"/><rect width="640" height="160" y="160" fill="#fff"/><rect width="640" height="160" y="320" fill="#477050"/>'
+        };
+
+        function setLangFlag(lang) {
+            const flag = document.getElementById('langFlag');
+            if (flag) flag.innerHTML = langFlagSVG[lang] || langFlagSVG.en;
+        }
+
+        // Initialize i18n immediately, update flag
         window.i18n.init().then(() => {
-            const label = document.getElementById('langLabel');
-            if (label) label.textContent = window.i18n.getLanguage().toUpperCase();
+            setLangFlag(window.i18n.getLanguage());
         });
-        // Update label on language change
+
+        // Update flag on language change
         window.addEventListener('language-changed', (e) => {
-            const label = document.getElementById('langLabel');
-            if (label) label.textContent = e.detail.lang.toUpperCase();
+            setLangFlag(e.detail.lang);
+        });
+
+        // Language dropdown toggle + selection
+        document.getElementById('langToggle').addEventListener('click', (e) => {
+            e.stopPropagation();
+            document.getElementById('langMenu').classList.toggle('open');
+        });
+
+        document.querySelectorAll('.lang-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                window.i18n.setLanguage(btn.dataset.lang);
+                document.getElementById('langMenu').classList.remove('open');
+            });
+        });
+
+        // Close dropdown on outside click
+        document.addEventListener('click', () => {
+            document.getElementById('langMenu').classList.remove('open');
         });
     </script>
     <script src="js/logger.js"></script> <!-- Logger - production-safe logging -->
