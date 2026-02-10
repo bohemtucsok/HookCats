@@ -78,6 +78,7 @@ docker-compose.local.yml
 
 # Claude Code
 .claude/
+.agents/
 .mcp.json
 
 # Debug output and test artifacts
