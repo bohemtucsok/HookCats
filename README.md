@@ -398,7 +398,7 @@ docker compose exec -T mysql mysql -u root -p webhook_db < backup.sql
 <p align="center">
   <a href="https://infotipp.hu"><img src="docs/images/infotipp-logo.png" height="40" alt="Infotipp Rendszerház Kft." /></a>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <a href="https://brutefence.com"><img src="docs/images/brutefence-logo.png" height="40" alt="BruteFence" /></a>
+  <a href="https://brutefence.com"><img src="docs/images/brutefence.png" height="40" alt="BruteFence" /></a>
 </p>
 
 ---
