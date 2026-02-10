@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/bohemtucsok/HookCats/main/src/frontend/favicon.svg" width="120" alt="HookCats logo" />
+  <img src="src/frontend/favicon.svg" width="120" alt="HookCats logo" />
 </p>
 
 <h1 align="center">HookCats</h1>
