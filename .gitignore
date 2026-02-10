@@ -105,6 +105,7 @@ quick_fix_*.sh
 
 # Screenshots and config examples
 *.png
+!docs/images/*.png
 *_webhook_config.json
 
 # Test HTML files

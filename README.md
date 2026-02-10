@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="src/frontend/favicon.svg" width="120" alt="HookCats logo" />
+  <img src="docs/images/login-screenshot.png" width="600" alt="HookCats login page" />
 </p>
-
-<h1 align="center">HookCats</h1>
 
 <p align="center">
   <strong>Route webhooks from your infrastructure to your chat. In seconds.</strong>
