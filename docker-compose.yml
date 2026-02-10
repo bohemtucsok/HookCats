@@ -2,7 +2,7 @@
 
 services:
   webhook-server:
-    image: ${DOCKER_REGISTRY:-localhost}/webhook_szerver/webhook_szerver_claude_code:latest
+    image: ${DOCKER_REGISTRY:-localhost}/hookcats/hookcats:latest
     ports:
       - "6688:6688"
     environment:
