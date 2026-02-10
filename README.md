@@ -1,154 +1,174 @@
-# HookCats
+<p align="center">
+  <img src="https://raw.githubusercontent.com/bohemtucsok/HookCats/main/src/frontend/favicon.svg" width="120" alt="HookCats logo" />
+</p>
 
-Biztonságos webhook routing szerver különböző rendszerek eseményeinek fogadására és továbbítására chat platformok felé.
+<h1 align="center">HookCats</h1>
 
-## Tartalomjegyzék
+<p align="center">
+  <strong>Route webhooks from your infrastructure to your chat. In seconds.</strong>
+</p>
 
-- [Funkciók](#funkciók)
-- [Telepítés](#telepítés)
-- [Beállítás](#beállítás)
-- [Használat](#használat)
-- [API](#api)
-- [Hibaelhárítás](#hibaelhárítás)
+<p align="center">
+  <a href="#features">Features</a> &bull;
+  <a href="#quick-start">Quick Start</a> &bull;
+  <a href="#supported-sources">Sources</a> &bull;
+  <a href="#configuration">Configuration</a> &bull;
+  <a href="#api-reference">API</a> &bull;
+  <a href="#license">License</a>
+</p>
 
----
-
-## Funkciók
-
-### Támogatott források
-
-| Típus | Leírás |
-|-------|--------|
-| Synology DSM | Rendszer események, backup állapotok |
-| Proxmox VE | VM/CT státusz változások, backup események |
-| Proxmox Backup | PBS backup és verify események |
-| GitLab | Push, merge request, pipeline események |
-| Docker Updater | Watchtower konténer frissítési értesítések |
-| Media-Webhook | Sonarr, Radarr, Bazarr média események |
-| Uptime Kuma | Monitoring állapot változások |
-| Generic | Tetszőleges JSON webhook |
-
-### Támogatott célpontok
-
-| Típus | Leírás |
-|-------|--------|
-| Mattermost | Incoming webhook |
-| Rocket.Chat | Incoming webhook |
-| Slack | Incoming webhook |
-| Discord | Webhook integráció |
-| Webhook | Tetszőleges HTTP endpoint |
-
-### Egyéb
-
-- **Dinamikus webhook URL-ek**: `/webhook/{secret_key}`
-- **RBAC**: Admin és User szerepkörök
-- **Team management**: Közös források, célpontok, útvonalak
-- **SSO**: Authentik OAuth2/OIDC integráció
-- **AES-256-GCM**: Szenzitív adatok titkosítása az adatbázisban
-- **Account lockout**: 5 sikertelen kísérlet → 30 perc zárolás
-- **Retry**: 3 kézbesítési próbálkozás hibakezeléssel
-- **Audit log**: Teljes tevékenység naplózás
+<p align="center">
+  <img src="https://img.shields.io/badge/node-%3E%3D18-brightgreen" alt="Node 18+" />
+  <img src="https://img.shields.io/badge/docker-ready-blue" alt="Docker Ready" />
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" />
+  <img src="https://img.shields.io/badge/i18n-EN%20%7C%20HU-orange" alt="Bilingual" />
+</p>
 
 ---
 
-## Telepítés
+## Why HookCats?
 
-### Előkövetelmények
+If you run a homelab or manage infrastructure, you know the drill: Synology sends alerts one way, Proxmox another, GitLab has its own webhook format, Uptime Kuma does its thing... and you just want **one place** to collect them all and forward them to your Mattermost, Slack, or Discord.
+
+**HookCats** is a self-hosted webhook routing server that acts as the central hub between your infrastructure and your team chat. It receives webhooks from any supported source, formats the messages nicely, and delivers them to your preferred chat platform.
+
+No cloud dependency. No subscription. No data leaving your network. Just a single Docker container.
+
+### The problem it solves
+
+```
+Before HookCats:
+  Synology  ──→ Email ──→ 📧 (who reads those?)
+  Proxmox   ──→ ??? ──→ nothing
+  GitLab    ──→ separate Mattermost hook
+  Sonarr    ──→ another Mattermost hook
+  Uptime    ──→ yet another hook
+
+After HookCats:
+  Synology  ──→ HookCats ──→ #ops-alerts
+  Proxmox   ──→ HookCats ──→ #ops-alerts
+  GitLab    ──→ HookCats ──→ #dev-updates
+  Sonarr    ──→ HookCats ──→ #media
+  Uptime    ──→ HookCats ──→ #monitoring
+```
+
+One dashboard. Full control over routing. Message history and delivery tracking.
+
+---
+
+## Features
+
+- **8 source types** with intelligent message formatting (see table below)
+- **5 target types**: Mattermost, Rocket.Chat, Slack, Discord, generic webhook
+- **Dynamic webhook URLs**: each source gets a unique `/webhook/{secret_key}` endpoint
+- **Visual admin UI** with dark mode, real-time dashboard, and charts
+- **Team management**: share sources, targets, and routes across your team
+- **RBAC**: Admin and User roles with scope-based access control
+- **SSO**: Authentik OAuth2/OIDC integration (optional)
+- **Security**: AES-256-GCM encryption for sensitive data, HMAC signature validation, account lockout, rate limiting, audit logging
+- **Bilingual**: full English and Hungarian UI with runtime language switching
+- **Retry logic**: 3 delivery attempts with error tracking
+- **Zero dependencies on external services**: runs entirely on your own hardware
+
+---
+
+## Supported Sources
+
+| Source | What it catches | Format |
+|--------|----------------|--------|
+| **Synology DSM** | System events, backup status, disk warnings | Rich formatted messages |
+| **Proxmox VE** | VM/CT status changes, backup events, cluster alerts | Structured with VM details |
+| **Proxmox Backup** | Backup job results, verification status | Task-level detail |
+| **GitLab** | Push, merge request, pipeline, tag events | Commit-level breakdown |
+| **Docker Updater** | Watchtower container update notifications | Before/after image info |
+| **Media Webhook** | Sonarr, Radarr, Bazarr grab/download/upgrade | Episode/movie details |
+| **Uptime Kuma** | Monitor up/down state changes | Status + duration |
+| **Generic** | Any JSON payload | Pass-through with template |
+
+---
+
+## Quick Start
+
+### Prerequisites
 
 - Docker Engine 20.10+
 - Docker Compose 2.0+
-- 512 MB RAM, 1 GB szabad tárhely
+- 512 MB RAM, 1 GB disk
 
-### 1. Klónozás
+### 1. Clone and configure
 
 ```bash
 git clone https://github.com/bohemtucsok/HookCats.git
 cd HookCats
-```
-
-### 2. Környezeti változók
-
-```bash
 cp .env.example .env
 ```
 
-Generálj biztonságos értékeket és töltsd ki a `.env` fájlt:
+Generate secure values:
 
 ```bash
-# JWT Secret (min 32 karakter)
+# JWT Secret (min 32 characters)
 openssl rand -base64 32
 
-# Webhook Secret (min 16 karakter)
+# Webhook Secret
 openssl rand -base64 24
 
-# Titkosítási kulcs (64 hex karakter)
+# Settings encryption key (64 hex chars)
 openssl rand -hex 32
 ```
 
-**`.env` tartalma:**
+Edit `.env` with your generated values:
 
 ```env
-# Adatbázis
-MYSQL_ROOT_PASSWORD=<erős_jelszó>
-MYSQL_PASSWORD=<erős_jelszó>
-
-# Biztonság
-JWT_SECRET=<min_32_karakter>
-WEBHOOK_SECRET=<min_16_karakter>
-SETTINGS_ENCRYPTION_KEY=<64_hex_karakter>
-
-# Alkalmazás
-NODE_ENV=production
-PORT=6688
-CORS_ORIGIN=https://webhook.yourdomain.com
+MYSQL_ROOT_PASSWORD=<strong_password>
+MYSQL_PASSWORD=<strong_password>
+JWT_SECRET=<min_32_characters>
+WEBHOOK_SECRET=<your_webhook_secret>
+SETTINGS_ENCRYPTION_KEY=<64_hex_characters>
+CORS_ORIGIN=https://hooks.yourdomain.com
 ```
 
-> **CORS_ORIGIN**: Production környezetben kötelező megadni a konkrét domain-t. Több domain vesszővel elválasztva adható meg.
-
-### 3. Indítás
+### 2. Launch
 
 ```bash
 docker compose up -d
 ```
 
-Első indításkor az adatbázis séma és az alapértelmezett admin fiók automatikusan létrejön.
+The database schema and default admin account are created automatically on first start.
 
-### 4. Első bejelentkezés
+### 3. Log in
 
-Nyisd meg a böngészőben: `http://<szerver_ip>:6688`
+Open `http://<your-server>:6688` in your browser.
 
 | | |
 |-|-|
-| **Felhasználónév** | `admin` |
-| **Jelszó** | `admin123` |
+| **Username** | `admin` |
+| **Password** | `admin123` |
 
-**Első bejelentkezés után változtasd meg az admin jelszót!**
+> **Change the default password immediately after first login.**
 
-### 5. Ellenőrzés
+### 4. Create your first route
 
-```bash
-# Health check
-curl http://localhost:6688/health
+1. **Sources** > New Source > pick type, name it, set a secret key
+2. **Targets** > New Target > pick your chat platform, paste the incoming webhook URL
+3. **Routes** > New Route > connect source to target
 
-# Migrációs logok
-docker compose logs webhook-server | grep -i migration
-```
+Your webhook URL is: `https://hooks.yourdomain.com/webhook/<secret_key>`
+
+Point your Synology/Proxmox/GitLab/etc. at that URL and you're done.
 
 ---
 
-## Beállítás
+## Configuration
 
-### Nginx reverse proxy (HTTPS)
-
-Ajánlott production környezetben HTTPS-t használni Nginx reverse proxy mögött:
+### Nginx reverse proxy (recommended for production)
 
 ```nginx
 server {
     listen 443 ssl;
-    server_name webhook.yourdomain.com;
+    server_name hooks.yourdomain.com;
 
-    ssl_certificate /etc/letsencrypt/live/webhook.yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/webhook.yourdomain.com/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/hooks.yourdomain.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/hooks.yourdomain.com/privkey.pem;
 
     location / {
         proxy_pass http://localhost:6688;
@@ -160,246 +180,209 @@ server {
 }
 ```
 
-### Webhook források létrehozása
+### SSO with Authentik (optional)
 
-**Admin UI > Saját > Források > Új forrás**
+Go to **Settings > SSO** in the admin panel:
 
-1. Adj nevet a forrásnak (pl. "Synology Backup")
-2. Válaszd ki a típust
-3. Adj meg egy secret key-t (vagy generálj)
-4. Válaszd ki a hatókört (Személyes vagy Csapat)
-
-Az elkészült webhook URL: `https://webhook.yourdomain.com/webhook/{secret_key}`
-
-### Célpontok beállítása
-
-**Admin UI > Saját > Célpontok > Új célpont**
-
-1. Adj nevet (pl. "Mattermost Operations")
-2. Válaszd ki a típust (Mattermost, Slack, Discord, stb.)
-3. Add meg a célpont webhook URL-jét
-4. Válaszd ki a hatókört
-
-### Útvonalak (routing)
-
-**Admin UI > Saját > Útvonalak > Új útvonal**
-
-Kösd össze a forrást a célponttal. Opcionálisan adj meg üzenet sablont:
-
-```
-**{{source}} Alert**
-Status: {{status}}
-Details: {{message}}
-```
-
-### SSO konfiguráció (opcionális)
-
-**Admin UI > Beállítások > SSO beállítások**
-
-| Mező | Érték |
-|------|-------|
-| SSO engedélyezés | Be |
+| Setting | Value |
+|---------|-------|
+| SSO Enabled | Yes |
 | Provider | Authentik |
-| Client ID | Az Authentik-ból |
-| Client Secret | Az Authentik-ból |
+| Client ID | From your Authentik provider |
+| Client Secret | From your Authentik provider |
 | Authority URL | `https://auth.yourdomain.com/application/o/authorize/` |
-| Redirect URI | `https://webhook.yourdomain.com/api/sso/callback` |
-| Scopes | `openid profile email` |
+| Redirect URI | `https://hooks.yourdomain.com/api/sso/callback` |
 
-Az Authentik oldalon:
-- Provider Type: OAuth2/OpenID
-- Redirect URIs: `https://webhook.yourdomain.com/api/sso/callback`
+On the Authentik side, create an OAuth2/OpenID provider with:
+- Redirect URI: `https://hooks.yourdomain.com/api/sso/callback`
 - Client Type: Confidential
+- Scopes: `openid profile email`
+
+### Language / i18n
+
+HookCats ships with **English** (default) and **Hungarian** translations. The UI detects your browser language automatically, or you can switch at any time via the language toggle in the header. The preference is saved per-user in the database.
+
+Backend error messages also respect the selected language via the `X-Language` HTTP header.
 
 ### Team management
 
-**Admin UI > Csapatok > Új csapat**
+Create teams to share sources, targets, and routes among users:
 
-1. Hozz létre csapatot névvel és leírással
-2. Adj hozzá tagokat (Owner / Admin / Member szerepkörrel)
-3. A csapat hatókörben létrehozott források, célpontok és útvonalak a tagok számára közösen láthatók
+1. **Teams** > New Team
+2. Add members with roles: **Owner**, **Admin**, or **Member**
+3. Switch to team scope to create shared resources
 
-### Felhasználók kezelése
-
-**Admin UI > Felhasználók** (csak admin)
-
-- Új felhasználó létrehozása
-- Szerepkör váltás (Admin / User)
-- Felhasználó aktiválás/deaktiválás
-- Utolsó admin nem törölhető (védelem)
+Team resources are visible to all team members. Personal resources remain private.
 
 ---
 
-## Használat
+## Source Setup Examples
 
-### Webhook küldés külső rendszerekből
+<details>
+<summary><strong>Synology DSM</strong></summary>
 
-#### Synology DSM
-
-Vezérlőpult > Értesítések > Webhook:
+Control Panel > Notifications > Webhook:
 
 ```
-URL: https://webhook.yourdomain.com/webhook/<secret_key>
+URL: https://hooks.yourdomain.com/webhook/<secret_key>
 Method: POST
 ```
+</details>
 
-#### Proxmox VE
+<details>
+<summary><strong>Proxmox VE</strong></summary>
 
-Datacenter > Notifications > Webhook:
+Datacenter > Notifications > Add Webhook:
 
 ```
-URL: https://webhook.yourdomain.com/webhook/<secret_key>
+URL: https://hooks.yourdomain.com/webhook/<secret_key>
 Method: POST
 Content-Type: application/json
 ```
+</details>
 
-#### GitLab
+<details>
+<summary><strong>GitLab</strong></summary>
 
 Settings > Webhooks:
 
 ```
-URL: https://webhook.yourdomain.com/webhook/<secret_key>
-Secret Token: <opcionális X-Webhook-Secret>
+URL: https://hooks.yourdomain.com/webhook/<secret_key>
+Secret Token: <optional, for X-Webhook-Secret validation>
 Trigger: Push events, Merge requests, Pipeline events
 ```
+</details>
 
-#### Uptime Kuma
+<details>
+<summary><strong>Uptime Kuma</strong></summary>
 
-Settings > Notifications > Webhook:
+Settings > Notifications > Add > Webhook:
 
 ```
-URL: https://webhook.yourdomain.com/webhook/<secret_key>
+URL: https://hooks.yourdomain.com/webhook/<secret_key>
 Method: POST
 Content-Type: application/json
 ```
+</details>
 
-#### cURL teszt
+<details>
+<summary><strong>Quick test with cURL</strong></summary>
 
 ```bash
-curl -X POST https://webhook.yourdomain.com/webhook/<secret_key> \
+curl -X POST https://hooks.yourdomain.com/webhook/<secret_key> \
   -H "Content-Type: application/json" \
-  -d '{"event": "test", "message": "Hello webhook!", "severity": "info"}'
+  -d '{"event": "test", "message": "Hello from HookCats!", "severity": "info"}'
 ```
+</details>
 
 ---
 
-## API
+## API Reference
 
-Minden védett endpoint JWT token-t igényel az `Authorization: Bearer <token>` header-ben.
+All protected endpoints require a JWT token via `Authorization: Bearer <token>`.
 
-### Autentikáció
-
-```
-POST /api/login              # Bejelentkezés (username + password)
-GET  /api/sso/login          # SSO átirányítás
-GET  /api/sso/callback       # SSO callback
-GET  /api/me                 # Aktuális felhasználó
-```
-
-### Webhook fogadás
+### Authentication
 
 ```
-POST /webhook/{secret_key}   # Dinamikus webhook endpoint (nincs auth)
+POST /api/login                    # Login (username + password)
+GET  /api/sso/login                # SSO redirect
+GET  /api/sso/callback             # SSO callback
+GET  /api/me                       # Current user profile
+PUT  /api/profile/language         # Update language preference
 ```
 
-### Személyes hatókör
+### Webhook Ingress (no auth)
 
 ```
-GET/POST        /api/personal/sources
-GET/PUT/DELETE  /api/personal/sources/:id
-GET/POST        /api/personal/targets
-GET/PUT/DELETE  /api/personal/targets/:id
-GET/POST        /api/personal/routes
-GET/PUT/DELETE  /api/personal/routes/:id
-GET             /api/personal/events
-GET/DELETE      /api/personal/events/:id
-GET             /api/personal/deliveries
-GET             /api/personal/deliveries/:id
+POST /webhook/{secret_key}         # Receive webhook from external source
+GET  /health                       # Health check
 ```
 
-### Csapat hatókör
+### Personal Scope
 
 ```
-GET/POST        /api/team/:teamId/sources
-GET/PUT/DELETE  /api/team/:teamId/sources/:id
-GET/POST        /api/team/:teamId/targets
-GET/PUT/DELETE  /api/team/:teamId/targets/:id
-GET/POST        /api/team/:teamId/routes
-GET/PUT/DELETE  /api/team/:teamId/routes/:id
-GET             /api/team/:teamId/events
-GET/DELETE      /api/team/:teamId/events/:id
-GET             /api/team/:teamId/deliveries
-GET             /api/team/:teamId/deliveries/:id
+GET/POST       /api/personal/sources|targets|routes
+GET/PUT/DELETE /api/personal/sources|targets|routes/:id
+GET            /api/personal/events|deliveries
+GET/DELETE     /api/personal/events/:id
+GET            /api/personal/deliveries/:id
+```
+
+### Team Scope
+
+```
+GET/POST       /api/team/:teamId/sources|targets|routes
+GET/PUT/DELETE /api/team/:teamId/sources|targets|routes/:id
+GET            /api/team/:teamId/events|deliveries
+GET/DELETE     /api/team/:teamId/events/:id
+GET            /api/team/:teamId/deliveries/:id
+```
+
+### Admin
+
+```
+GET/POST       /api/admin/users
+PUT            /api/admin/users/:id/role|active
+DELETE         /api/admin/users/:id
+GET/POST       /api/admin/teams
+GET/PUT        /api/settings
+POST           /api/settings/sso/validate
+POST           /api/test-delivery/:targetId
 ```
 
 ### Dashboard
 
 ```
-GET /api/dashboard/stats          # Statisztikák
-GET /api/dashboard/recent-events  # Legutóbbi események
-```
-
-### Admin (admin szerepkör szükséges)
-
-```
-GET    /api/admin/users           # Felhasználók listázása
-POST   /api/admin/users           # Felhasználó létrehozása
-PUT    /api/admin/users/:id/role  # Szerepkör módosítás
-PUT    /api/admin/users/:id/active # Aktiválás/deaktiválás
-DELETE /api/admin/users/:id       # Felhasználó törlés
-GET    /api/admin/teams           # Csapatok listázása
-POST   /api/admin/teams           # Csapat létrehozás
-```
-
-### Beállítások (admin)
-
-```
-GET  /api/settings                # Beállítások lekérdezése
-PUT  /api/settings                # Beállítások mentése
-POST /api/settings/sso/validate   # SSO konfiguráció tesztelés
-```
-
-### Kézbesítés teszt
-
-```
-POST /api/test-delivery/:targetId  # Teszt üzenet küldése
-```
-
-### Health check
-
-```
-GET /health                       # Rendszer állapot (nincs auth)
+GET /api/dashboard/stats           # Statistics overview
+GET /api/dashboard/recent-events   # Recent events feed
 ```
 
 ---
 
-## Hibaelhárítás
+## Tech Stack
 
-### Konténer nem indul
+| Layer | Technology |
+|-------|-----------|
+| Backend | Node.js 18 + Express.js |
+| Database | MySQL 8.0 |
+| Frontend | Vanilla JS (no framework, no build step) |
+| Auth | JWT + bcrypt + OAuth2/OIDC SSO |
+| Encryption | AES-256-GCM (settings), bcrypt (passwords) |
+| Infrastructure | Docker + Docker Compose |
+| i18n | English + Hungarian |
+
+---
+
+## Troubleshooting
+
+<details>
+<summary><strong>Container won't start</strong></summary>
 
 ```bash
-# Logok ellenőrzése
 docker compose logs webhook-server
-
-# MySQL logok
 docker compose logs mysql
 ```
 
-**Gyakori okok:**
-- Hiányzó környezeti változók → ellenőrizd a `.env` fájlt
-- JWT_SECRET túl rövid (min 32 karakter)
-- SETTINGS_ENCRYPTION_KEY nem 64 hex karakter
-- CORS_ORIGIN hiányzik production módban
-- MySQL még nem kész → a `depends_on: condition: service_healthy` megoldja
+Common causes:
+- Missing `.env` values
+- `JWT_SECRET` too short (min 32 chars)
+- `SETTINGS_ENCRYPTION_KEY` not 64 hex chars
+- `CORS_ORIGIN` missing in production mode
+</details>
 
-### Account lockout feloldás
+<details>
+<summary><strong>Account locked out</strong></summary>
+
+After 5 failed login attempts, the account locks for 30 minutes. To unlock immediately:
 
 ```bash
 docker compose exec mysql mysql -u root -p webhook_db -e \
   "UPDATE users SET login_attempts = 0, locked_until = NULL WHERE username = 'admin';"
 ```
+</details>
 
-### Adatbázis backup
+<details>
+<summary><strong>Database backup & restore</strong></summary>
 
 ```bash
 # Backup
@@ -408,32 +391,10 @@ docker compose exec mysql mysqldump -u root -p webhook_db > backup_$(date +%Y%m%
 # Restore
 docker compose exec -T mysql mysql -u root -p webhook_db < backup.sql
 ```
-
-### Szerver újraindítás
-
-```bash
-# Teljes stack
-docker compose down && docker compose up -d
-
-# Csak az alkalmazás
-docker compose restart webhook-server
-```
+</details>
 
 ---
 
-## Technológiai stack
+## License
 
-| Komponens | Technológia |
-|-----------|-------------|
-| Backend | Node.js 18+ (Express.js) |
-| Adatbázis | MySQL 8.0 |
-| Frontend | Vanilla HTML/CSS/JavaScript |
-| Auth | JWT + bcrypt + SSO (OAuth2/OIDC) |
-| Titkosítás | AES-256-GCM |
-| Infrastruktúra | Docker, Docker Compose |
-| Nyelv | Magyar lokalizáció |
-
----
-
-**Verzió:** 2.0
-**Állapot:** Production Ready
+[MIT](LICENSE) -- use it, fork it, self-host it. Contributions welcome.
