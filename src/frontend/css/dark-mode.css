@@ -1,0 +1,505 @@
+/**
+ * Dark Mode Specific Styles
+ * Uses CSS variables defined in style.css
+ */
+
+/* Login Form Dark Mode */
+body.dark-mode .login-form {
+    background: var(--bg-secondary);
+    box-shadow: 0 10px 25px var(--shadow);
+}
+
+body.dark-mode .login-header h1 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .login-header p {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .login-header i {
+    color: var(--primary-color);
+}
+
+/* Forms Dark Mode */
+body.dark-mode .form-group label {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .form-control,
+body.dark-mode input[type="text"],
+body.dark-mode input[type="password"],
+body.dark-mode input[type="email"],
+body.dark-mode input[type="url"],
+body.dark-mode input[type="number"],
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark-mode .form-control:focus,
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+    border-color: var(--primary-color);
+    background-color: var(--bg-secondary);
+}
+
+/* Buttons Dark Mode */
+body.dark-mode .btn-primary {
+    background-color: var(--primary-color);
+}
+
+body.dark-mode .btn-primary:hover {
+    background-color: var(--primary-dark);
+}
+
+body.dark-mode .btn-secondary {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .btn-secondary:hover {
+    background-color: var(--border-color);
+}
+
+body.dark-mode .btn-icon {
+    background-color: transparent;
+    color: var(--text-primary);
+    padding: 8px 12px;
+}
+
+body.dark-mode .btn-icon:hover {
+    background-color: var(--bg-tertiary);
+}
+
+/* Header Dark Mode */
+body.dark-mode .app-header {
+    background: var(--bg-secondary);
+    border-bottom-color: var(--border-color);
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+body.dark-mode .app-header h1 {
+    color: var(--text-primary);
+}
+
+/* Sidebar Dark Mode */
+body.dark-mode .sidebar {
+    background: var(--bg-secondary);
+    border-right-color: var(--border-color);
+}
+
+body.dark-mode .nav-link {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .nav-link:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .nav-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Main Content Dark Mode */
+body.dark-mode .main-content {
+    background: var(--bg-primary);
+}
+
+body.dark-mode .page-header h2 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .page-header p {
+    color: var(--text-secondary);
+}
+
+/* Cards Dark Mode */
+body.dark-mode .stat-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+body.dark-mode .stat-card h3 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .stat-card p {
+    color: var(--text-secondary);
+}
+
+/* Tables Dark Mode */
+body.dark-mode .table-container {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .data-table {
+    background: var(--bg-secondary);
+}
+
+body.dark-mode .data-table thead {
+    background: var(--bg-tertiary);
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .data-table th {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .data-table td {
+    color: var(--text-secondary);
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .data-table tbody tr:hover {
+    background: var(--bg-tertiary);
+}
+
+/* Modal Dark Mode */
+body.dark-mode .modal-content {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .modal-header {
+    border-bottom-color: var(--border-color);
+}
+
+body.dark-mode .modal-header h3 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .modal-footer {
+    border-top-color: var(--border-color);
+}
+
+body.dark-mode .modal-close {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .modal-close:hover {
+    color: var(--text-primary);
+    background: var(--bg-tertiary);
+}
+
+/* Badges and Labels Dark Mode */
+body.dark-mode .badge {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .badge-success {
+    background: var(--success-color);
+    color: white;
+}
+
+body.dark-mode .badge-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+body.dark-mode .badge-warning {
+    background: var(--warning-color);
+    color: #212529;
+}
+
+body.dark-mode .badge-info {
+    background: var(--info-color);
+    color: white;
+}
+
+/* Charts Dark Mode */
+body.dark-mode .chart-container {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .chart-header h3 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .apexcharts-text {
+    fill: var(--text-secondary);
+}
+
+body.dark-mode .apexcharts-gridline {
+    stroke: var(--border-color);
+}
+
+/* Settings Dark Mode */
+body.dark-mode .settings-container {
+    background: var(--bg-secondary);
+}
+
+body.dark-mode .settings-nav {
+    border-right-color: var(--border-color);
+}
+
+body.dark-mode .settings-tab {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .settings-tab:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .settings-tab.active {
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+    border-left-color: var(--primary-color);
+}
+
+body.dark-mode .settings-section {
+    background: var(--bg-secondary);
+}
+
+body.dark-mode .settings-section h3 {
+    color: var(--text-primary);
+}
+
+/* Profile Dark Mode */
+body.dark-mode .profile-section {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .profile-section h3 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .profile-info .info-item label {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .profile-info .info-item span {
+    color: var(--text-primary);
+}
+
+/* Toast Notifications Dark Mode */
+body.dark-mode .toast {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+    box-shadow: 0 4px 8px var(--shadow);
+}
+
+body.dark-mode .toast-success {
+    border-left-color: var(--success-color);
+}
+
+body.dark-mode .toast-error {
+    border-left-color: var(--danger-color);
+}
+
+body.dark-mode .toast-warning {
+    border-left-color: var(--warning-color);
+}
+
+body.dark-mode .toast-info {
+    border-left-color: var(--info-color);
+}
+
+/* Error Messages Dark Mode */
+body.dark-mode .error-message {
+    background: rgba(230, 69, 83, 0.1);
+    color: var(--danger-color);
+    border-color: var(--danger-color);
+}
+
+body.dark-mode .success-message {
+    background: rgba(46, 160, 76, 0.1);
+    color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+/* Scope Selector Dark Mode */
+body.dark-mode .scope-selector label {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .scope-select,
+body.dark-mode .team-select {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+/* SSO Login Dark Mode */
+body.dark-mode .sso-login-section {
+    border-top-color: var(--border-color);
+}
+
+body.dark-mode .login-divider {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .login-divider::before,
+body.dark-mode .login-divider::after {
+    background: var(--border-color);
+}
+
+body.dark-mode .btn-sso {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+}
+
+body.dark-mode .btn-sso:hover {
+    background: var(--border-color);
+    border-color: var(--primary-color);
+}
+
+/* Code/Pre Dark Mode */
+body.dark-mode code,
+body.dark-mode pre {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+/* Scrollbar Dark Mode (Webkit browsers) */
+body.dark-mode ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+body.dark-mode ::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb {
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+body.dark-mode ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-color);
+}
+
+/* Selection Dark Mode */
+body.dark-mode ::selection {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* ==========================================
+   DOCUMENTATION DARK MODE
+   ========================================== */
+
+/* Documentation list cards */
+body.dark-mode .doc-list-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+body.dark-mode .doc-list-card:hover {
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    border-color: var(--primary-color);
+}
+
+body.dark-mode .doc-list-card h3 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .doc-list-card .doc-description {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .doc-list-card .doc-header i {
+    color: var(--primary-color);
+}
+
+/* Documentation detail view */
+body.dark-mode .doc-detail-container {
+    background: var(--bg-secondary);
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+body.dark-mode .doc-detail-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.dark-mode .doc-detail-header .btn {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+body.dark-mode .doc-detail-header .btn:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+body.dark-mode .doc-detail-content {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .doc-detail-content h2,
+body.dark-mode .doc-detail-content h3,
+body.dark-mode .doc-detail-content h4 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .doc-detail-content code {
+    background: var(--bg-tertiary);
+    color: var(--primary-color);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .doc-detail-content pre {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .doc-detail-content pre code {
+    background: transparent;
+    color: var(--text-primary);
+}
+
+body.dark-mode .doc-detail-content strong {
+    color: var(--text-primary);
+}
+
+body.dark-mode .doc-detail-content a {
+    color: var(--primary-color);
+}
+
+body.dark-mode .doc-detail-content a:hover {
+    color: var(--primary-dark);
+}
+
+/* Legacy doc-card (if used) */
+body.dark-mode .doc-card {
+    background: var(--bg-secondary);
+    border-color: var(--border-color);
+    box-shadow: 0 2px 8px var(--shadow);
+}
+
+body.dark-mode .doc-card:hover {
+    box-shadow: 0 4px 16px var(--shadow);
+}
+
+body.dark-mode .doc-card .doc-header {
+    border-bottom-color: var(--primary-color);
+}
+
+body.dark-mode .doc-card .doc-header h3 {
+    color: var(--text-primary);
+}
+
+body.dark-mode .doc-card .doc-description {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .doc-content {
+    color: var(--text-secondary);
+}

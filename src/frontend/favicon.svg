@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .bg { fill: #3a3d44; }
+      .white { fill: #ffffff; }
+      .black { fill: #000000; }
+      .red { fill: #e74c3c; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect class="bg" width="512" height="512" rx="90"/>
+
+  <!-- Chain link - left -->
+  <path class="white" d="M 80 200 Q 80 150, 120 150 L 180 150 Q 220 150, 220 200 L 220 280 Q 220 330, 180 330 L 120 330 Q 80 330, 80 280 Z" fill="none" stroke="#ffffff" stroke-width="35"/>
+
+  <!-- Chain link - right -->
+  <path class="white" d="M 292 200 Q 292 150, 332 150 L 392 150 Q 432 150, 432 200 L 432 280 Q 432 330, 392 330 L 332 330 Q 292 330, 292 280 Z" fill="none" stroke="#ffffff" stroke-width="35"/>
+
+  <!-- Face circle -->
+  <circle cx="256" cy="240" r="100" fill="#3a3d44" stroke="#ffffff" stroke-width="30"/>
+
+  <!-- Left eye -->
+  <ellipse cx="230" cy="220" rx="25" ry="35" class="white"/>
+  <circle cx="230" cy="225" r="12" class="black"/>
+
+  <!-- Right eye -->
+  <ellipse cx="282" cy="220" rx="25" ry="35" class="white"/>
+  <circle cx="282" cy="225" r="12" class="black"/>
+
+  <!-- Eyebrows -->
+  <path d="M 210 195 Q 220 185, 240 190" fill="none" stroke="#000000" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 272 190 Q 292 185, 302 195" fill="none" stroke="#000000" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Mouth - big smile -->
+  <ellipse cx="256" cy="260" rx="40" ry="30" class="black"/>
+
+  <!-- Tongue -->
+  <ellipse cx="256" cy="275" rx="18" ry="22" class="red"/>
+
+  <!-- WEBHOOK text -->
+  <text x="256" y="460" font-family="Arial, sans-serif" font-size="65" font-weight="bold" fill="#ffffff" text-anchor="middle">WEBHOOK</text>
+</svg>

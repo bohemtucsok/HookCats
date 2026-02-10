@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webhook Admin</title>
+
+    <!-- Favicons -->
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="alternate icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon.svg">
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- CRITICAL: Auth check before page loads to prevent content flash -->
+    <script>
+        (function() {
+            // Check authentication IMMEDIATELY before anything else loads
+            const TOKEN_KEY = 'webhook_admin_token';
+            const token = localStorage.getItem(TOKEN_KEY);
+            
+            // CRITICAL: Also check for SSO token in sessionStorage (SSO callback case)
+            const ssoToken = sessionStorage.getItem('sso_token_transfer');
+            
+            // If no token in localStorage AND no SSO token in sessionStorage, redirect to login
+            if (!token && !ssoToken) {
+                window.location.replace('/login');
+                // Stop page rendering
+                document.write('');
+                document.close();
+            }
+            // If token exists OR SSO token exists, let the page load and app.js will handle it
+        })();
+    </script>
+    
+    <!-- Hide body content until auth is confirmed -->
+    <style>
+        body { opacity: 0; }
+        body.auth-confirmed { opacity: 1; transition: opacity 0.2s; }
+    </style>
+</head>
+<body>
+    <!-- Main Application -->
+    <div id="mainApp" class="main-app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <i class="fas fa-webhook"></i>
+                <h1>Webhook Admin</h1>
+            </div>
+            <div class="header-right">
+                <button id="langToggle" class="btn btn-icon" title="Language / Nyelv" onclick="window.i18n.setLanguage(window.i18n.getLanguage() === 'en' ? 'hu' : 'en')">
+                    <span id="langLabel">EN</span>
+                </button>
+                <button id="themeToggle" class="btn btn-icon" data-i18n-title="header.theme_toggle" title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <span class="user-info">
+                    <i class="fas fa-user"></i>
+                    <span id="currentUser"></span>
+                </span>
+                <button id="logoutBtn" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span data-i18n="header.logout">Log out</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="sidebar">
+            <ul class="nav-menu">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" data-page="dashboard">
+                        <i class="fas fa-tachometer-alt"></i>
+                        Dashboard
+                    </a>
+                </li>
+
+                <!-- Scope-based navigation will be dynamically inserted here -->
+
+                <li class="nav-item admin-only">
+                    <a href="#" class="nav-link" data-page="teams">
+                        <i class="fas fa-users-cog"></i>
+                        <span data-i18n="nav.teams">Teams</span>
+                        <span class="admin-badge">
+                            <i class="fas fa-crown"></i>
+                        </span>
+                    </a>
+                </li>
+                <li class="nav-item admin-only">
+                    <a href="#" class="nav-link" data-page="users">
+                        <i class="fas fa-users"></i>
+                        <span data-i18n="nav.users">Users</span>
+                        <span class="admin-badge">
+                            <i class="fas fa-crown"></i>
+                        </span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="docs">
+                        <i class="fas fa-book"></i>
+                        <span data-i18n="nav.docs">Documentation</span>
+                    </a>
+                </li>
+                <li class="nav-item admin-only">
+                    <a href="#" class="nav-link" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        <span data-i18n="nav.settings">Settings</span>
+                        <span class="admin-badge">
+                            <i class="fas fa-crown"></i>
+                        </span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" data-page="profile">
+                        <i class="fas fa-user-cog"></i>
+                        <span data-i18n="nav.profile">Profile</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <div id="dashboardPage" class="page active">
+                <div class="page-header">
+                    <h2 data-i18n="nav.dashboard">Dashboard</h2>
+                    <p data-i18n="dashboard.subtitle">System overview and statistics</p>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon sources">
+                            <i class="fas fa-code-branch"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="sourcesCount">-</h3>
+                            <p data-i18n="dashboard.sources">Sources</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon targets">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="targetsCount">-</h3>
+                            <p data-i18n="dashboard.targets">Targets</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon routes">
+                            <i class="fas fa-route"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="routesCount">-</h3>
+                            <p data-i18n="dashboard.routes">Routes</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon events">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="eventsCount">-</h3>
+                            <p data-i18n="dashboard.events">Events</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 data-i18n="dashboard.chart_title">Events trend</h3>
+                        <div class="chart-controls">
+                            <select id="chartTimeRange" class="form-control chart-range-select">
+                                <option value="24h" data-i18n="dashboard.last_24h">Last 24 hours</option>
+                                <option value="7d" selected data-i18n="dashboard.last_7d">Last 7 days</option>
+                                <option value="30d" data-i18n="dashboard.last_30d">Last 30 days</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="eventsChart" class="chart-wrapper">
+                        <div class="loading" data-i18n="common.loading">Loading...</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sources Page -->
+            <div id="sourcesPage" class="page">
+                <div class="page-header">
+                    <div class="page-title-section">
+                        <h2 data-i18n="sources.title">Sources management</h2>
+                        <div class="scope-selector">
+                            <label for="sourcesScope" data-i18n="scope.label">Scope:</label>
+                            <select id="sourcesScope" class="form-control scope-select">
+                                <option value="personal" data-i18n="scope.personal">Personal</option>
+                                <option value="team" disabled data-i18n="scope.selector.no_team">Team (Select a team)</option>
+                            </select>
+                            <select id="sourcesTeamSelect" class="form-control team-select" style="display: none;">
+                                <option value="" data-i18n="scope.select_team">Select a team...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="addSourceBtn">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="sources.new">New source</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.name">Name</th>
+                                <th data-i18n="table.type">Type</th>
+                                <th data-i18n="table.secret_key">Secret Key</th>
+                                <th data-i18n="table.created_at">Created</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sourcesTable">
+                            <tr>
+                                <td colspan="5" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Targets Page -->
+            <div id="targetsPage" class="page">
+                <div class="page-header">
+                    <div class="page-title-section">
+                        <h2 data-i18n="targets.title">Targets management</h2>
+                        <div class="scope-selector">
+                            <label for="targetsScope" data-i18n="scope.label">Scope:</label>
+                            <select id="targetsScope" class="form-control scope-select">
+                                <option value="personal" data-i18n="scope.personal">Personal</option>
+                                <option value="team" disabled data-i18n="scope.selector.no_team">Team (Select a team)</option>
+                            </select>
+                            <select id="targetsTeamSelect" class="form-control team-select" style="display: none;">
+                                <option value="" data-i18n="scope.select_team">Select a team...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="addTargetBtn">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="targets.new">New target</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.name">Name</th>
+                                <th data-i18n="table.type">Type</th>
+                                <th data-i18n="table.webhook_url">Webhook URL</th>
+                                <th data-i18n="table.created_at">Created</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="targetsTable">
+                            <tr>
+                                <td colspan="5" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Routes Page -->
+            <div id="routesPage" class="page">
+                <div class="page-header">
+                    <div class="page-title-section">
+                        <h2 data-i18n="routes.title">Routes management</h2>
+                        <div class="scope-selector">
+                            <label for="routesScope" data-i18n="scope.label">Scope:</label>
+                            <select id="routesScope" class="form-control scope-select">
+                                <option value="personal" data-i18n="scope.personal">Personal</option>
+                                <option value="team" disabled data-i18n="scope.selector.no_team">Team (Select a team)</option>
+                            </select>
+                            <select id="routesTeamSelect" class="form-control team-select" style="display: none;">
+                                <option value="" data-i18n="scope.select_team">Select a team...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="addRouteBtn">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="routes.new">New route</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.source">Source</th>
+                                <th data-i18n="table.target">Target</th>
+                                <th data-i18n="table.message_template">Message template</th>
+                                <th data-i18n="table.created_at">Created</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="routesTable">
+                            <tr>
+                                <td colspan="5" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Events Page -->
+            <div id="eventsPage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="events.title">Events</h2>
+                    <div class="filters">
+                        <select id="sourceFilter" class="form-control">
+                            <option value="" data-i18n="filters.all_sources">All sources</option>
+                        </select>
+                        <button class="btn btn-secondary" id="refreshEventsBtn">
+                            <i class="fas fa-refresh"></i>
+                            <span data-i18n="common.refresh">Refresh</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.source">Source</th>
+                                <th data-i18n="table.event_type">Event type</th>
+                                <th data-i18n="table.received_at">Received</th>
+                                <th data-i18n="table.processed_at">Processed</th>
+                                <th data-i18n="table.status">Status</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTable">
+                            <tr>
+                                <td colspan="6" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Deliveries Page -->
+            <div id="deliveriesPage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="deliveries.title">Deliveries</h2>
+                    <button class="btn btn-secondary" id="refreshDeliveriesBtn">
+                        <i class="fas fa-refresh"></i>
+                        <span data-i18n="common.refresh">Refresh</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.event_id">Event ID</th>
+                                <th data-i18n="table.target">Target</th>
+                                <th data-i18n="table.status">Status</th>
+                                <th data-i18n="table.attempts">Attempts</th>
+                                <th data-i18n="table.last_error">Last error</th>
+                                <th data-i18n="table.sent_at">Sent</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="deliveriesTable">
+                            <tr>
+                                <td colspan="7" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="usersPage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="users.title">Users management</h2>
+                    <p data-i18n="users.subtitle">System users and roles administration</p>
+                    <button class="btn btn-primary" id="addUserBtn">
+                        <i class="fas fa-user-plus"></i>
+                        <span data-i18n="users.new">New user</span>
+                    </button>
+                </div>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.id">ID</th>
+                                <th data-i18n="table.username">Username</th>
+                                <th data-i18n="table.role">Role</th>
+                                <th data-i18n="table.group">Group</th>
+                                <th data-i18n="table.created_at">Created</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTable">
+                            <tr>
+                                <td colspan="6" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Teams Page -->
+            <div id="teamsPage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="teams.title">Teams management</h2>
+                    <p data-i18n="teams.subtitle">Teams and memberships administration</p>
+                    <button class="btn btn-primary" id="addTeamBtn">
+                        <i class="fas fa-plus"></i>
+                        <span data-i18n="teams.new">New team</span>
+                    </button>
+                </div>
+
+                <!-- Teams Statistics -->
+                <div class="team-stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon teams">
+                            <i class="fas fa-users-cog"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="teamsCount">-</h3>
+                            <p data-i18n="teams.stats.total">Total teams</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon members">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="totalMembersCount">-</h3>
+                            <p data-i18n="teams.stats.members">Total members</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon my-teams">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="myTeamsCount">-</h3>
+                            <p data-i18n="teams.stats.my_teams">My teams</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon resources">
+                            <i class="fas fa-boxes"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="teamResourcesCount">-</h3>
+                            <p data-i18n="teams.stats.resources">Team resources</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teams Table -->
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th data-i18n="table.id">ID</th>
+                                <th data-i18n="table.team_name">Team name</th>
+                                <th data-i18n="table.owner">Owner</th>
+                                <th data-i18n="table.member_count">Member count</th>
+                                <th data-i18n="table.resources">Resources</th>
+                                <th data-i18n="table.created_at">Created</th>
+                                <th data-i18n="common.actions">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teamsTable">
+                            <tr>
+                                <td colspan="7" class="loading" data-i18n="common.loading">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settingsPage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="settings.title">System settings</h2>
+                    <p data-i18n="settings.subtitle">Application configuration management</p>
+                </div>
+
+                <!-- Settings Navigation Tabs -->
+                <div class="settings-container">
+                    <div class="settings-nav">
+                        <button class="settings-tab active" data-tab="sso">
+                            <i class="fas fa-shield-alt"></i>
+                            <span data-i18n="settings.tabs.sso">SSO settings</span>
+                        </button>
+                        <button class="settings-tab" data-tab="security">
+                            <i class="fas fa-lock"></i>
+                            <span data-i18n="settings.tabs.security">Security settings</span>
+                        </button>
+                        <button class="settings-tab" data-tab="system">
+                            <i class="fas fa-server"></i>
+                            <span data-i18n="settings.tabs.system">System settings</span>
+                        </button>
+                    </div>
+
+                    <div class="settings-content">
+                        <!-- SSO Settings Tab -->
+                        <div id="ssoSettings" class="settings-tab-content active">
+                            <div class="settings-section">
+                                <h3 data-i18n="settings.sso.title">Single Sign-On configuration</h3>
+                                <form id="ssoForm" class="settings-form">
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" id="ssoEnabled" name="sso_enabled">
+                                            <span data-i18n="settings.sso.enabled">Enable SSO authentication</span>
+                                        </label>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" id="ssoOnly" name="sso_only">
+                                            <span data-i18n="settings.sso.sso_only">SSO-only login allowed (local login disabled)</span>
+                                        </label>
+                                        <small class="form-text text-muted" data-i18n="settings.sso.sso_only_help">
+                                            When enabled, only the SSO button appears on the login page
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="ssoProvider" data-i18n="settings.sso.provider">Provider type</label>
+                                        <select id="ssoProvider" name="sso_provider" class="form-control">
+                                            <option value="authentik">Authentik</option>
+                                        </select>
+                                        <small class="form-text text-muted" data-i18n="settings.sso.provider_help">Currently only Authentik is supported</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="ssoClientId" data-i18n="settings.sso.client_id">Client ID</label>
+                                        <input type="text" id="ssoClientId" name="sso_client_id" class="form-control"
+                                               data-i18n-placeholder="settings.sso.client_id_placeholder" placeholder="OAuth2 client identifier">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="ssoClientSecret" data-i18n="settings.sso.client_secret">Client Secret</label>
+                                        <input type="password" id="ssoClientSecret" name="sso_client_secret" class="form-control"
+                                               data-i18n-placeholder="settings.sso.client_secret_placeholder" placeholder="OAuth2 client secret key">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="ssoAuthorityUrl" data-i18n="settings.sso.authority_url">Authority URL</label>
+                                        <input type="url" id="ssoAuthorityUrl" name="sso_authority_url" class="form-control"
+                                               placeholder="https://auth.example.com/auth/realms/master">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="ssoRedirectUri" data-i18n="settings.sso.redirect_uri">Redirect URI</label>
+                                        <input type="url" id="ssoRedirectUri" name="sso_redirect_uri" class="form-control"
+                                               placeholder="https://webhook.example.com/auth/callback">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="ssoScopes" data-i18n="settings.sso.scopes">Scopes</label>
+                                        <input type="text" id="ssoScopes" name="sso_scopes" class="form-control"
+                                               placeholder="openid profile email" value="openid profile email">
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="app.validateSSO()">
+                                            <i class="fas fa-check"></i>
+                                            <span data-i18n="settings.sso.validate">Validate configuration</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="app.resetSSOSettings()">
+                                            <i class="fas fa-undo"></i>
+                                            <span data-i18n="common.reset">Reset to default</span>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            <span data-i18n="common.save">Save</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Security Settings Tab -->
+                        <div id="securitySettings" class="settings-tab-content">
+                            <div class="settings-section">
+                                <h3 data-i18n="settings.security.title">Security settings</h3>
+                                <form id="securityForm" class="settings-form">
+                                    <div class="form-group">
+                                        <label for="jwtTokenLifetime" data-i18n="settings.security.jwt_lifetime">JWT token lifetime</label>
+                                        <input type="text" id="jwtTokenLifetime" name="jwt_token_lifetime" class="form-control"
+                                               placeholder="24h" value="24h">
+                                        <small class="form-text text-muted" data-i18n="settings.security.jwt_format_help">
+                                            Format: 1h, 24h, 7d, 30d
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="sessionTimeout" data-i18n="settings.security.session_timeout">Session timeout (minutes)</label>
+                                        <input type="number" id="sessionTimeout" name="session_timeout" class="form-control"
+                                               placeholder="1440" min="5" max="43200" value="1440">
+                                        <small class="form-text text-muted" data-i18n="settings.security.session_help">
+                                            Auto-logout after inactivity (5-43200 minutes)
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" id="webhookSignatureValidation" name="webhook_signature_validation" checked>
+                                            <span data-i18n="settings.security.signature_validation">Webhook signature validation</span>
+                                        </label>
+                                        <small class="form-text text-muted" data-i18n="settings.security.signature_help">
+                                            HMAC-SHA256 signature verification for incoming webhooks
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" id="requireHttps" name="require_https">
+                                            <span data-i18n="settings.security.require_https">Enforce HTTPS</span>
+                                        </label>
+                                        <small class="form-text text-muted" data-i18n="settings.security.require_https_help">
+                                            Redirect HTTP requests to HTTPS
+                                        </small>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="app.resetSecuritySettings()">
+                                            <i class="fas fa-undo"></i>
+                                            <span data-i18n="common.reset">Reset to default</span>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            <span data-i18n="common.save">Save</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- System Settings Tab -->
+                        <div id="systemSettings" class="settings-tab-content">
+                            <div class="settings-section">
+                                <h3 data-i18n="settings.system.title">System settings</h3>
+                                <form id="systemForm" class="settings-form">
+                                    <div class="form-group">
+                                        <label for="appName" data-i18n="settings.system.app_name">Application name</label>
+                                        <input type="text" id="appName" name="app_name" class="form-control"
+                                               placeholder="Webhook Admin" value="Webhook Admin">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="webhookRetryAttempts" data-i18n="settings.system.retry_attempts">Webhook retry attempts</label>
+                                        <input type="number" id="webhookRetryAttempts" name="webhook_retry_attempts" class="form-control"
+                                               placeholder="3" min="1" max="10" value="3">
+                                        <small class="form-text text-muted" data-i18n="settings.system.retry_help">
+                                            How many times to retry webhook delivery on failure
+                                        </small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="timezone" data-i18n="settings.system.timezone">Timezone</label>
+                                        <select id="timezone" name="timezone" class="form-control">
+                                            <option value="Europe/Budapest" selected>Europe/Budapest (CET/CEST)</option>
+                                            <option value="UTC">UTC</option>
+                                            <option value="Europe/London">Europe/London (GMT/BST)</option>
+                                            <option value="Europe/Berlin">Europe/Berlin (CET/CEST)</option>
+                                            <option value="America/New_York">America/New_York (EST/EDT)</option>
+                                            <option value="America/Los_Angeles">America/Los_Angeles (PST/PDT)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="logLevel" data-i18n="settings.system.log_level">Log level</label>
+                                        <select id="logLevel" name="log_level" class="form-control">
+                                            <option value="error">Error</option>
+                                            <option value="warn">Warning</option>
+                                            <option value="info" selected>Info</option>
+                                            <option value="debug">Debug</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>
+                                            <input type="checkbox" id="maintenanceMode" name="maintenance_mode">
+                                            <span data-i18n="settings.system.maintenance_mode">Maintenance mode</span>
+                                        </label>
+                                        <small class="form-text text-muted" data-i18n="settings.system.maintenance_help">
+                                            Temporarily stop webhook reception
+                                        </small>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="app.resetSystemSettings()">
+                                            <i class="fas fa-undo"></i>
+                                            <span data-i18n="common.reset">Reset to default</span>
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            <span data-i18n="common.save">Save</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div id="profilePage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="profile.title">Profile settings</h2>
+                    <p data-i18n="profile.subtitle">Manage your own account information and settings</p>
+                </div>
+                <div class="profile-container">
+                    <div class="profile-section">
+                        <h3 data-i18n="profile.info_title">Profile information</h3>
+                        <div class="profile-info">
+                            <div class="info-item">
+                                <label data-i18n="profile.username_label">Username:</label>
+                                <span id="profileUsername">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label data-i18n="profile.role_label">Role:</label>
+                                <span id="profileRole">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label data-i18n="profile.email_label">Email address:</label>
+                                <span id="profileEmail">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label data-i18n="profile.full_name_label">Full name:</label>
+                                <span id="profileFullName">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label data-i18n="profile.registration_date">Registration date:</label>
+                                <span id="profileCreatedAt">-</span>
+                            </div>
+                            <div class="info-item">
+                                <label data-i18n="profile.user_id">User ID:</label>
+                                <span id="profileUserId">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="profile-section">
+                        <h3 data-i18n="profile.change_username.title">Change username</h3>
+                        <form id="changeUsernameForm" class="profile-form">
+                            <div class="form-group">
+                                <label for="newUsername" data-i18n="profile.change_username.label">New username</label>
+                                <input type="text" id="newUsername" name="newUsername" class="form-control" required
+                                       pattern="[a-zA-Z0-9_-]+"
+                                       title="Only letters, numbers, underscores and hyphens allowed">
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i>
+                                <span data-i18n="profile.change_username.button">Save username</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="profile-section">
+                        <h3 data-i18n="profile.change_password.title">Change password</h3>
+                        <form id="changePasswordForm" class="profile-form">
+                            <div class="form-group">
+                                <label for="currentPassword" data-i18n="profile.change_password.current">Current password</label>
+                                <input type="password" id="currentPassword" name="currentPassword" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="newPassword" data-i18n="profile.change_password.new">New password</label>
+                                <input type="password" id="newPassword" name="newPassword" class="form-control" required minlength="6">
+                                <small class="form-text text-muted" data-i18n="profile.change_password.min_length_help">Must be at least 6 characters long</small>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPassword" data-i18n="profile.change_password.confirm">Confirm new password</label>
+                                <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-key"></i>
+                                <span data-i18n="profile.change_password.button">Save password</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Documentation Page -->
+            <div id="docsPage" class="page">
+                <div class="page-header">
+                    <h2 data-i18n="docs.title">Documentation</h2>
+                    <p data-i18n="docs.subtitle">Webhook source setup guides</p>
+                </div>
+                <div class="docs-grid" id="docsContent">
+                    <div class="loading" data-i18n="docs.loading">Loading documentation...</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal Template -->
+    <div id="modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle"></h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Dynamic content will be inserted here -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- Dynamic buttons will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="js/i18n.js"></script> <!-- i18n FIRST - translations must be available to all modules -->
+    <script>
+        // Initialize i18n immediately, update language toggle label
+        window.i18n.init().then(() => {
+            const label = document.getElementById('langLabel');
+            if (label) label.textContent = window.i18n.getLanguage().toUpperCase();
+        });
+        // Update label on language change
+        window.addEventListener('language-changed', (e) => {
+            const label = document.getElementById('langLabel');
+            if (label) label.textContent = e.detail.lang.toUpperCase();
+        });
+    </script>
+    <script src="js/logger.js"></script> <!-- Logger - production-safe logging -->
+    <script src="js/theme.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/scope.js"></script>
+    <script src="js/team.js"></script>
+    <script src="js/chart.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

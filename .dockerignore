@@ -1,0 +1,86 @@
+# Node.js dependencies and cache
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+CHANGELOG.md
+WEBHOOK_ENDPOINTS.md
+LOGGING.md
+gabesz_nginx_proxy.md
+docs/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Testing
+coverage/
+.nyc_output/
+test/
+tests/
+*.test.js
+*.spec.js
+src/scripts/*
+!src/scripts/run-migrations.js
+test-*.js
+test-*.html
+
+# Development tools
+.eslintrc*
+.prettierrc*
+nodemon.json
+
+# Docker files (avoid recursion)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Temporary files
+tmp/
+temp/
+
+# Build artifacts
+dist/
+build/
+
+# Package manager lock files (optional - include if you want deterministic builds)
+# package-lock.json
+# yarn.lock
+
+# Application specific
+test_webhooks.js
+*.backup.js
+*_backup.js
+_trash/
+.claude/

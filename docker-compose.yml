@@ -1,0 +1,64 @@
+# Docker Compose file for HookCats
+
+services:
+  webhook-server:
+    image: ${DOCKER_REGISTRY:-localhost}/webhook_szerver/webhook_szerver_claude_code:latest
+    ports:
+      - "6688:6688"
+    environment:
+      - NODE_ENV=production
+      - PORT=6688
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=webhook_db
+      - DB_USER=webhook_user
+      - DB_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - JWT_SECRET=${JWT_SECRET}
+      - WEBHOOK_SECRET=${WEBHOOK_SECRET}
+      - SETTINGS_ENCRYPTION_KEY=${SETTINGS_ENCRYPTION_KEY}
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+    dns:
+      - 8.8.8.8
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6688/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      mysql:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - webhook-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=webhook_db
+      - MYSQL_USER=webhook_user
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      timeout: 5s
+      retries: 10
+      interval: 10s
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - webhook-network
+    ports:
+      - "3306:3306"  # Optional: expose for external access (remove in production)
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  webhook-network:
+    driver: bridge

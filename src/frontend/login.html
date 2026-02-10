@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Webhook Admin – Login</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<style>
+  :root{
+    --bg1:#0e1525;
+    --bg2:#192132;
+    --card:#111a2bcc;
+    --border:#ffffff1a;
+    --text:#f1f5f9;
+    --accent:#667eea;
+    --accent2:#764ba2;
+    --shadow:#000a;
+  }
+  *{box-sizing:border-box}
+  html,body{
+    height:100%;
+    margin:0;
+    font-family:"Poppins",Inter,ui-sans-serif;
+    color:var(--text);
+    background:radial-gradient(circle at 20% 20%,#1a2135,#0d1322);
+  }
+  .wrap{
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .scene{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:2;
+  }
+  .card{
+    width:min(90vw,420px);
+    border-radius:20px;
+    padding:28px 30px 22px;
+    background:var(--card);
+    backdrop-filter:blur(8px);
+    border:1px solid var(--border);
+    box-shadow:0 8px 40px var(--shadow);
+    position:relative;
+    z-index:3;
+  }
+  .title{
+    font-size:24px;
+    font-weight:800;
+    margin:0 0 14px;
+    text-align:center;
+    letter-spacing:0.4px;
+  }
+  .subtitle{
+    font-size:13px;
+    color:#94a3b8;
+    text-align:center;
+    margin-bottom:24px;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    color:#cbd5e1;
+    margin:8px 0 6px;
+  }
+  input{
+    width:100%;
+    padding:12px 14px;
+    border-radius:12px;
+    border:1px solid #2b3347;
+    background:#0c1221;
+    color:var(--text);
+    transition:border .2s;
+  }
+  input:focus{
+    border-color:var(--accent);
+    outline:none;
+    box-shadow:0 0 0 3px #667eea20;
+  }
+  .btn{
+    width:100%;
+    border:0;
+    padding:12px 14px;
+    border-radius:12px;
+    margin-top:14px;
+    font-weight:700;
+    color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    cursor:pointer;
+    transition:transform .2s,box-shadow .2s;
+  }
+  .btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 6px 20px #0006;
+  }
+  .btn:disabled{
+    opacity:0.6;
+    cursor:not-allowed;
+    transform:none;
+  }
+  .error-message{
+    margin-top:14px;
+    padding:10px 14px;
+    border-radius:8px;
+    background:#dc354520;
+    border:1px solid #dc3545;
+    color:#ff6b7a;
+    font-size:13px;
+    display:none;
+  }
+  .error-message.show{
+    display:block;
+  }
+
+  /* SSO section */
+  .login-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 20px 0;
+  }
+  .login-divider::before,
+  .login-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #2b3347;
+  }
+  .login-divider span {
+    padding: 0 10px;
+    color: #94a3b8;
+    font-size: 12px;
+  }
+  .btn-sso {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-sso:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  }
+  .sso-login-section {
+    margin-top: 16px;
+  }
+
+  /* Modern cica – stilizált design */
+  .cat{
+    position:fixed;
+    width:160px;
+    height:160px;
+    z-index:4;
+    pointer-events:none;
+    left:-9999px;
+    top:-9999px;
+  }
+  .cat svg{
+    width:100%;
+    height:100%;
+    filter:drop-shadow(0 10px 20px #0008);
+  }
+  .cat .ear{
+    animation:earTwitch 4s ease-in-out infinite;
+  }
+  .cat .tail{
+    transform-origin:90% 80%;
+    animation:tailWave 3s ease-in-out infinite;
+  }
+  .cat .paw{
+    transform-origin:80px 100px;
+    animation:pawIdle 1.8s ease-in-out infinite;
+  }
+  .cat.swat .paw{
+    animation:pawSwat .35s cubic-bezier(.3,.9,.2,1) 1;
+  }
+  @keyframes earTwitch{0%,100%{transform:rotate(0)}50%{transform:rotate(8deg)}}
+  @keyframes tailWave{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-14deg)}}
+  @keyframes pawIdle{0%,100%{transform:rotate(0)}50%{transform:rotate(-18deg)}}
+  @keyframes pawSwat{0%{transform:rotate(0)}40%{transform:rotate(-75deg)}70%{transform:rotate(-90deg)}100%{transform:rotate(-10deg)}}
+
+  .floating{
+    position:fixed;
+    width:56px;
+    height:56px;
+    border-radius:14px;
+    display:grid;
+    place-items:center;
+    color:#fff;
+    font-weight:700;
+    box-shadow:0 8px 24px #0006,inset 0 0 0 1px #ffffff24;
+    border:1px solid #0004;
+    backdrop-filter:blur(6px);
+    pointer-events:auto;
+    z-index:1;
+  }
+  .floating .tip{
+    position:absolute;
+    top:-22px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:10px;
+    color:#cbd5e1;
+    background:#0b1220;
+    padding:2px 6px;
+    border-radius:6px;
+    border:1px solid #243047;
+    opacity:0;
+    transition:opacity .15s;
+    white-space:nowrap;
+  }
+  .floating:hover .tip{
+    opacity:1;
+  }
+  .mm{background:linear-gradient(135deg,#3b82f6,#2563eb)}
+  .dock{background:linear-gradient(135deg,#0ea5e9,#0284c7)}
+  .rc{background:linear-gradient(135deg,#ef4444,#b91c1c)}
+  .syno{background:linear-gradient(135deg,#22c55e,#15803d)}
+  .k8s{background:linear-gradient(135deg,#6366f1,#4338ca)}
+  .proxmox{background:linear-gradient(135deg,#e97435,#d65a1f)}
+  .icon{
+    font-size:26px;
+    filter:drop-shadow(0 2px 6px #0006);
+  }
+  .status{
+    position:fixed;
+    left:16px;
+    right:16px;
+    bottom:16px;
+    text-align:center;
+    color:#64748b;
+    font-size:12px;
+    z-index:5;
+  }
+</style>
+</head>
+<body>
+<div class="scene" id="scene"></div>
+<div class="wrap">
+  <div class="card">
+    <div class="title" data-i18n="auth.login_title">🔐 Webhook Admin</div>
+    <div class="subtitle" data-i18n="auth.login_subtitle">Sign in to access the system</div>
+
+    <!-- Local Login Form -->
+    <form id="loginForm" onsubmit="event.preventDefault(); handleLogin();">
+      <label for="username" data-i18n="auth.username">Username</label>
+      <input id="username" name="username" placeholder="admin" autocomplete="username" required/>
+      <label for="password" data-i18n="auth.password">Password</label>
+      <input id="password" name="password" type="password" placeholder="••••••••" autocomplete="current-password" required/>
+      <button class="btn" type="submit" id="loginBtn">
+        <span id="loginBtnText" data-i18n="auth.login_button">Sign in</span>
+      </button>
+    </form>
+
+    <!-- SSO Login Section - OUTSIDE form so it stays visible in SSO-only mode -->
+    <div id="ssoLoginSection" class="sso-login-section" style="display: none;">
+      <div class="login-divider">
+        <span data-i18n="auth.or">or</span>
+      </div>
+      <button id="ssoLoginBtn" class="btn btn-sso" type="button" style="display: none;">
+        <span id="ssoProviderName" data-i18n="auth.sso_login">SSO Sign in</span>
+      </button>
+    </div>
+    
+    <div id="loginError" class="error-message"></div>
+  </div>
+</div>
+
+<div class="cat" id="cat" aria-hidden="true">
+  <svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg">
+    <g class="tail"><path d="M110 88c20 12 20 34 -2 34" stroke="#dcb57c" stroke-width="10" stroke-linecap="round"/></g>
+    <ellipse cx="72" cy="96" rx="40" ry="28" fill="#f3c47a"/>
+    <ellipse cx="50" cy="118" rx="12" ry="8" fill="#e0ac69"/>
+    <g class="paw"><ellipse cx="92" cy="108" rx="12" ry="8" fill="#e0ac69"/></g>
+    <circle cx="68" cy="60" r="26" fill="#f3c47a"/>
+    <path class="ear" d="M52 52 L40 28 L60 40 Z" fill="#f3c47a"/>
+    <path class="ear" d="M84 52 L96 28 L76 40 Z" fill="#f3c47a"/>
+    <circle cx="58" cy="60" r="4" fill="#000"/>
+    <circle cx="78" cy="60" r="4" fill="#000"/>
+    <path d="M66 68 q5 8 10 0" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M46 58 h14 M46 64 h16 M80 58 h14 M80 64 h16" stroke="#000" stroke-width="2"/>
+  </svg>
+</div>
+
+<div class="status" id="status" data-i18n="auth.status_text">Webhook Admin Panel</div>
+
+<script>
+// Minimal i18n for login page
+(function() {
+  const lang = localStorage.getItem('preferred_language') || (navigator.language || '').split('-')[0] || 'en';
+  const supported = ['en', 'hu'];
+  const activeLang = supported.includes(lang) ? lang : 'en';
+  document.documentElement.lang = activeLang;
+  let translations = {};
+  fetch(`/locales/${activeLang}.json`).then(r => r.ok ? r.json() : {}).then(data => {
+    translations = data;
+    // Re-translate DOM elements
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      const val = key.split('.').reduce((o, k) => o && o[k], translations);
+      if (val) el.textContent = val;
+    });
+  }).catch(() => {});
+  window._i18n = function(key) {
+    return key.split('.').reduce((o, k) => o && o[k], translations) || key;
+  };
+})();
+
+const cat=document.getElementById('cat');
+const card=document.getElementById('loginForm');
+const scene=document.getElementById('scene');
+
+function placeCat(){
+  const r=card.getBoundingClientRect();
+  cat.style.left=(r.right+20)+'px';
+  cat.style.top=(r.top+r.height/2-80)+'px';
+}
+
+const ICONS=[
+  {key:'mm',label:'Mattermost',glyph:'💬'},
+  {key:'dock',label:'Docker',glyph:'🐳'},
+  {key:'rc',label:'Rocket.Chat',glyph:'🚀'},
+  {key:'syno',label:'Synology',glyph:'🗂️'},
+  {key:'k8s',label:'Kubernetes',glyph:'⚙️'},
+  {key:'proxmox',label:'Proxmox',glyph:'🖥️'}
+];
+
+const active=new Set();
+
+function spawnIcon(){
+  if(active.size>=6)return;
+  const data=ICONS[Math.floor(Math.random()*ICONS.length)];
+  const el=document.createElement('div');
+  el.className=`floating ${data.key}`;
+  el.innerHTML=`<div class="tip">${data.label}</div><div class="icon">${data.glyph}</div>`;
+  scene.appendChild(el);
+  const spawn=randomEdge();
+  const target=targetPoint();
+  const s={
+    el,
+    x:spawn.x,
+    y:spawn.y,
+    vx:0,
+    vy:0,
+    targetX:target.x,
+    targetY:target.y,
+    born:performance.now(),
+    life:9000
+  };
+  active.add(s);
+  el.style.left=(s.x-28)+'px';
+  el.style.top=(s.y-28)+'px';
+}
+
+function randomEdge(){
+  const s=Math.floor(Math.random()*4);
+  if(s===0)return{x:-40,y:Math.random()*innerHeight};
+  if(s===1)return{x:innerWidth+40,y:Math.random()*innerHeight};
+  if(s===2)return{x:Math.random()*innerWidth,y:-40};
+  return{x:Math.random()*innerWidth,y:innerHeight+40};
+}
+
+function targetPoint(){
+  const r=card.getBoundingClientRect();
+  return{
+    x:r.right+60+Math.random()*60-30,
+    y:r.top+r.height/2+Math.random()*80-40
+  };
+}
+
+function moveIcons(now){
+  const catRect=cat.getBoundingClientRect();
+  const pawX=catRect.left+100,pawY=catRect.top+110;
+  for(const s of Array.from(active)){
+    const dx=s.targetX-s.x,dy=s.targetY-s.y,d=Math.hypot(dx,dy)||1;
+    s.vx+=(dx/d)*0.08;
+    s.vy+=(dy/d)*0.08;
+    const v=Math.hypot(s.vx,s.vy);
+    if(v>2){
+      s.vx=s.vx/v*2;
+      s.vy=s.vy/v*2;
+    }
+    s.x+=s.vx;
+    s.y+=s.vy;
+    if(s.x>catRect.left-30&&s.x<catRect.right&&s.y>catRect.top&&s.y<catRect.bottom){
+      s.vx*=-1;
+      s.vy*=-1;
+      s.x+=s.vx*5;
+      s.y+=s.vy*5;
+    }
+    s.el.style.left=(s.x-28)+'px';
+    s.el.style.top=(s.y-28)+'px';
+    const dP=Math.hypot(s.x-pawX,s.y-pawY);
+    if(dP<130&&!cat.classList.contains('swat')){
+      cat.classList.add('swat');
+      setTimeout(()=>cat.classList.remove('swat'),400);
+      s.vx*=-1.3;
+      s.vy*=-1.3;
+    }
+    if(now-s.born>9000){
+      s.el.remove();
+      active.delete(s);
+    }
+  }
+  if(active.size<4)spawnIcon();
+}
+
+function loop(t){
+  moveIcons(t||performance.now());
+  requestAnimationFrame(loop);
+}
+
+window.addEventListener('resize',placeCat);
+window.addEventListener('DOMContentLoaded',()=>{
+  placeCat();
+  for(let i=0;i<4;i++)spawnIcon();
+  setInterval(spawnIcon,1500);
+  loop();
+  
+  // Load SSO configuration
+  loadSSOConfig();
+});
+
+// SSO Configuration
+async function loadSSOConfig() {
+  try {
+    const response = await fetch('/api/sso/config');
+    if (response.ok) {
+      const result = await response.json();
+      
+      // Backend response format: { success: true, data: { enabled, ssoOnly, ... } }
+      const data = result.success ? result.data : result;
+      
+      if (data.enabled) {
+        document.getElementById('ssoLoginSection').style.display = 'block';
+        document.getElementById('ssoLoginBtn').style.display = 'flex';
+        document.getElementById('ssoProviderName').textContent = data.provider_name || (window._i18n ? window._i18n('auth.sso_login') : 'SSO Sign in');
+        
+        // Check if SSO-only mode is enabled
+        if (data.ssoOnly === true) {
+          // Hide the local login form
+          const loginForm = document.getElementById('loginForm');
+          if (loginForm) {
+            loginForm.style.display = 'none';
+          }
+          // Remove the "vagy" (or) divider since there's no alternative
+          const divider = document.querySelector('.login-divider');
+          if (divider) {
+            divider.style.display = 'none';
+          }
+        }
+      }
+    }
+  } catch (error) {
+    // Silent fail - SSO not configured
+  }
+}
+
+// SSO Login Handler
+document.getElementById('ssoLoginBtn')?.addEventListener('click', async function() {
+  try {
+    // Get SSO configuration with state parameter
+    const response = await fetch('/api/sso/config');
+    if (!response.ok) {
+      throw new Error('Failed to get SSO configuration');
+    }
+    
+    const result = await response.json();
+    const ssoConfig = result.success ? result.data : result;
+    
+    if (!ssoConfig.enabled) {
+      throw new Error('SSO is not enabled');
+    }
+    
+    if (!ssoConfig.authUrl || !ssoConfig.clientId) {
+      throw new Error('SSO configuration incomplete');
+    }
+    
+    // Build OAuth2 authorization URL
+    const authUrl = buildAuthorizationUrl(ssoConfig);
+    
+    // Redirect to SSO provider
+    window.location.href = authUrl;
+    
+  } catch (error) {
+    console.error('[SSO] Login error:', error);
+    const errorDiv = document.getElementById('loginError');
+    if (errorDiv) {
+      errorDiv.textContent = (window._i18n ? window._i18n('auth.login_error') : 'SSO login error: ') + error.message;
+      errorDiv.classList.add('show');
+    }
+  }
+});
+
+/**
+ * Build OAuth2 authorization URL
+ */
+function buildAuthorizationUrl(ssoConfig) {
+  // Determine authorization endpoint based on provider
+  let authEndpoint = ssoConfig.authUrl;
+  
+  if (ssoConfig.provider === 'authentik') {
+    // Authentik: replace .well-known/openid-configuration with authorize
+    authEndpoint = authEndpoint.replace('/.well-known/openid-configuration', '/authorize');
+  } else if (ssoConfig.provider === 'keycloak') {
+    authEndpoint = authEndpoint.replace('/.well-known/openid-configuration', '/protocol/openid-connect/auth');
+  } else if (ssoConfig.provider === 'azure') {
+    authEndpoint = authEndpoint.replace('/.well-known/openid-configuration', '/oauth2/v2.0/authorize');
+  } else if (ssoConfig.provider === 'google') {
+    authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
+  }
+  
+  // Build query parameters
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: ssoConfig.clientId,
+    redirect_uri: window.location.origin + '/api/sso/callback',
+    scope: 'openid profile email',
+    state: ssoConfig.state  // CSRF-protected state from backend
+  });
+  
+  return `${authEndpoint}?${params.toString()}`;
+}
+
+// Login Handler
+async function handleLogin() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const loginBtn = document.getElementById('loginBtn');
+  const loginBtnText = document.getElementById('loginBtnText');
+  const errorDiv = document.getElementById('loginError');
+  
+  // Disable button and show loading
+  loginBtn.disabled = true;
+  loginBtnText.textContent = window._i18n ? window._i18n('auth.logging_in') : 'Signing in...';
+  errorDiv.classList.remove('show');
+  
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    });
+    
+    const result = await response.json();
+    
+    console.log('[LOGIN] Login response:', result);
+    
+    // Backend response format: { success: true, data: { token, user } }
+    if (response.ok && result.success && result.data && result.data.token) {
+      console.log('[LOGIN] Login successful!');
+      console.log('[LOGIN] User data:', result.data.user);
+      console.log('[LOGIN] User role:', result.data.user.role);
+      
+      // CRITICAL: Use the same keys as Auth class!
+      const TOKEN_KEY = 'webhook_admin_token';
+      const USER_KEY = 'webhook_admin_user';
+      const ROLE_KEY = 'userRole';
+      
+      // Store token and user info with correct keys
+      localStorage.setItem(TOKEN_KEY, result.data.token);
+      localStorage.setItem(USER_KEY, JSON.stringify(result.data.user));
+      
+      // Also store role separately for easy access
+      if (result.data.user.role) {
+        localStorage.setItem(ROLE_KEY, result.data.user.role);
+        console.log('[LOGIN] Role stored in localStorage:', result.data.user.role);
+      }
+      
+      // Add validation flag
+      sessionStorage.setItem('login_validated', 'true');
+      
+      console.log('[LOGIN] All data stored, redirecting to dashboard...');
+      // Redirect to admin dashboard
+      window.location.href = '/';
+    } else {
+      throw new Error(result.error || (window._i18n ? window._i18n('auth.login_failed') : 'Login failed'));
+    }
+  } catch (error) {
+    console.error('[LOGIN] Login error:', error);
+    errorDiv.textContent = error.message || (window._i18n ? window._i18n('auth.login_error_generic') : 'An error occurred during login');
+    errorDiv.classList.add('show');
+  } finally {
+    loginBtn.disabled = false;
+    loginBtnText.textContent = window._i18n ? window._i18n('auth.login_button') : 'Sign in';
+  }
+}
+
+// Check if already logged in - only validate, don't redirect yet
+// The main app will handle the redirect after proper validation
+const TOKEN_KEY = 'webhook_admin_token';
+const USER_KEY = 'webhook_admin_user';
+
+const storedToken = localStorage.getItem(TOKEN_KEY);
+if (storedToken) {
+  console.log('[LOGIN] Token found in storage, validating...');
+  
+  fetch('/api/users/me', {
+    headers: {
+      'Authorization': `Bearer ${storedToken}`
+    }
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('[LOGIN] Token valid, redirecting to dashboard...');
+      // Add a flag to prevent loop
+      sessionStorage.setItem('login_validated', 'true');
+      // Already logged in, redirect to admin dashboard
+      window.location.href = '/';
+    } else {
+      console.log('[LOGIN] Token invalid (status:', response.status, '), clearing storage');
+      // Token invalid, clear storage with correct keys
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+      localStorage.removeItem('userRole');
+    }
+  })
+  .catch((error) => {
+    console.error('[LOGIN] Token validation error:', error);
+    // Token invalid, clear storage with correct keys
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    localStorage.removeItem('userRole');
+  });
+}
+</script>
+</body>
+</html>

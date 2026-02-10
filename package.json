@@ -1,0 +1,65 @@
+{
+  "name": "hookcats",
+  "version": "1.0.0",
+  "description": "HookCats - Webhook routing server for processing events from various sources and forwarding to chat platforms",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
+    "test": "node tests/simple-smoke-test.js",
+    "test:smoke": "node tests/smoke-test.js",
+    "test:structure": "node tests/simple-smoke-test.js",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:visual": "playwright test webhook-admin.spec.ts --headed",
+    "test:rbac": "node src/scripts/test-rbac-suite.js",
+    "test:rbac:migration": "node src/scripts/test-rbac-migration.js",
+    "test:rbac:api": "node src/scripts/test-rbac-api.js",
+    "test:rbac:security": "node src/scripts/test-rbac-security.js",
+    "test:rbac:frontend": "node src/scripts/test-rbac-frontend.js",
+    "test:rbac:e2e": "node src/scripts/test-rbac-e2e.js",
+    "docker:build": "docker build -t webhook-server .",
+    "docker:run": "docker run -p 8080:8080 webhook-server",
+    "docker:up": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:restart": "docker compose restart webhook-server"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-rate-limit": "^6.8.1",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.6.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@playwright/test": "^1.55.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0",
+    "nodemon": "^3.0.1",
+    "playwright": "^1.55.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "webhook",
+    "server",
+    "docker",
+    "mysql",
+    "mattermost",
+    "rocket-chat"
+  ],
+  "author": "HookCats Team",
+  "license": "MIT"
+}
