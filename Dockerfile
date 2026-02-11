@@ -14,8 +14,8 @@ RUN npm install --production && npm cache clean --force
 # Stage 2: Production stage
 FROM node:18-alpine AS production
 
-# Install curl for health checks
-RUN apk add --no-cache curl
+# Update system packages (fix CVEs) and install curl for health checks
+RUN apk upgrade --no-cache && apk add --no-cache curl
 
 # Create app user for security (non-root)
 RUN addgroup -g 1001 -S nodejs && \
