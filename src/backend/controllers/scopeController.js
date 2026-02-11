@@ -636,10 +636,38 @@ const getScopedResource = (resourceType) => {
       }
     }
 
-    const resources = await database.query(
-      `SELECT * FROM ${resourceType} WHERE ${whereClause}`,
-      params
-    );
+    let query;
+    const alias = resourceType.charAt(0);
+    const aliasedWhere = whereClause.replace(/\bid\b/g, `${alias}.id`)
+      .replace(/\bcreated_by_user_id\b/g, `${alias}.created_by_user_id`)
+      .replace(/\bvisibility\b/g, `${alias}.visibility`)
+      .replace(/\bteam_id\b/g, `${alias}.team_id`);
+
+    if (resourceType === 'deliveries') {
+      query = `SELECT ${alias}.*, t.name as target_name, t.type as target_type,
+               e.event_type, s.name as source_name
+               FROM ${resourceType} ${alias}
+               JOIN targets t ON ${alias}.target_id = t.id
+               JOIN events e ON ${alias}.event_id = e.id
+               JOIN sources s ON e.source_id = s.id
+               WHERE ${aliasedWhere}`;
+    } else if (resourceType === 'routes') {
+      query = `SELECT ${alias}.*, s.name as source_name, s.type as source_type,
+               t.name as target_name, t.type as target_type
+               FROM ${resourceType} ${alias}
+               JOIN sources s ON ${alias}.source_id = s.id
+               JOIN targets t ON ${alias}.target_id = t.id
+               WHERE ${aliasedWhere}`;
+    } else if (resourceType === 'events') {
+      query = `SELECT ${alias}.*, s.name as source_name, s.type as source_type
+               FROM ${resourceType} ${alias}
+               LEFT JOIN sources s ON ${alias}.source_id = s.id
+               WHERE ${aliasedWhere}`;
+    } else {
+      query = `SELECT * FROM ${resourceType} WHERE ${whereClause}`;
+    }
+
+    const resources = await database.query(query, params);
 
     if (resources.length === 0) {
       throw new CustomError(req.t('scope.resource_not_found_or_no_access'), 404);
