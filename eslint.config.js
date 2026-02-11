@@ -14,7 +14,8 @@ module.exports = [
       'debug-*.js',
       'test-*.js',
       'test_*.js',
-      'run-*.js'
+      'run-*.js',
+      'mcp-server/'
     ]
   },
   // Base recommended rules

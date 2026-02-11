@@ -84,6 +84,12 @@
     "minimum_role_required": "At least {{role}} permission required",
     "user_already_has_role": "User already has {{role}} role"
   },
+  "api_keys": {
+    "name_required": "API key name is required (max 100 characters)",
+    "created": "API key created. Save it now — it will not be shown again.",
+    "not_found": "API key not found",
+    "deleted": "API key deleted"
+  },
   "validation": {
     "failed": "Validation failed",
     "name_length": "Name must be between 1-100 characters",

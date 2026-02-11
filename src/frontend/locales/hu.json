@@ -426,6 +426,21 @@
       "min_length_help": "Legalább 6 karakter hosszú legyen",
       "button": "Jelszó mentése"
     },
+    "api_keys": {
+      "title": "API Kulcsok",
+      "description": "API kulcsok generálása MCP szerverekhez és külső integrációkhoz.",
+      "name_label": "Kulcs neve",
+      "generate": "API Kulcs generálása",
+      "warning": "Mentse el most a kulcsot. Többé nem fog megjelenni!",
+      "copied": "API kulcs másolva a vágólapra",
+      "created": "API kulcs sikeresen létrehozva",
+      "deleted": "API kulcs törölve",
+      "name_required": "Kérjük, adjon nevet az API kulcsnak",
+      "confirm_delete": "Biztosan törli a(z) \"{{name}}\" API kulcsot?",
+      "last_used": "Utoljára használva:",
+      "never_used": "Még nem használt",
+      "none": "Még nincsenek API kulcsok. Generáljon egyet a kezdéshez."
+    },
     "validation": {
       "username_required": "Felhasználónév nem lehet üres",
       "username_same": "Az új felhasználónév megegyezik a jelenlegivel",

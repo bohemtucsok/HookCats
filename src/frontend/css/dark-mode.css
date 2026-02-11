@@ -299,6 +299,52 @@ body.dark-mode .profile-info .info-item span {
     color: var(--text-primary);
 }
 
+/* API Keys Dark Mode */
+body.dark-mode .section-description {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .api-key-generate input {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark-mode .api-key-generate label {
+    color: var(--text-secondary);
+}
+
+body.dark-mode .api-key-result {
+    background: rgba(255, 193, 7, 0.15);
+    border-color: rgba(255, 193, 7, 0.4);
+}
+
+body.dark-mode .api-key-warning {
+    color: #ffc107;
+}
+
+body.dark-mode .api-key-display {
+    background: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .api-key-display code {
+    color: var(--text-primary);
+}
+
+body.dark-mode .api-key-name {
+    color: var(--text-primary);
+}
+
+body.dark-mode .api-key-prefix {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+}
+
+body.dark-mode .api-key-item {
+    border-bottom-color: var(--border-color);
+}
+
 /* Toast Notifications Dark Mode */
 body.dark-mode .toast {
     background: var(--bg-secondary);

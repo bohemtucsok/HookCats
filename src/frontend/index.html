@@ -805,6 +805,40 @@
                             </button>
                         </form>
                     </div>
+
+                    <div class="profile-section">
+                        <h3 data-i18n="profile.api_keys.title">API Keys</h3>
+                        <p class="section-description" data-i18n="profile.api_keys.description">Generate API keys for MCP servers and external integrations.</p>
+
+                        <div class="api-key-generate">
+                            <div class="form-group">
+                                <label for="apiKeyName" data-i18n="profile.api_keys.name_label">Key name</label>
+                                <input type="text" id="apiKeyName" class="form-control" maxlength="100"
+                                       placeholder="e.g. Claude Code MCP">
+                            </div>
+                            <button id="generateApiKeyBtn" class="btn btn-primary">
+                                <i class="fas fa-plus"></i>
+                                <span data-i18n="profile.api_keys.generate">Generate API Key</span>
+                            </button>
+                        </div>
+
+                        <div id="apiKeyResult" class="api-key-result" style="display: none;">
+                            <div class="api-key-warning">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <span data-i18n="profile.api_keys.warning">Save this key now. It will not be shown again!</span>
+                            </div>
+                            <div class="api-key-display">
+                                <code id="apiKeyValue"></code>
+                                <button id="copyApiKeyBtn" class="btn btn-icon" title="Copy">
+                                    <i class="fas fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="apiKeysList" class="api-keys-list">
+                            <div class="loading" data-i18n="common.loading">Loading...</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

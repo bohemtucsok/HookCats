@@ -1,13 +1,58 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const bcrypt = require('bcrypt');
 const database = require('../config/database');
 
 /**
+ * Authenticate via API key (X-API-Key header)
+ * Returns user object if valid, null otherwise
+ */
+const authenticateApiKey = async (apiKey) => {
+  if (!apiKey || !apiKey.startsWith('hc_')) return null;
+
+  // Find all active API keys and compare with bcrypt
+  const keys = await database.query(
+    'SELECT ak.id, ak.key_hash, ak.user_id, u.username, u.role, u.is_active, u.created_at FROM api_keys ak JOIN users u ON ak.user_id = u.id WHERE ak.is_active = TRUE AND u.is_active = TRUE'
+  );
+
+  for (const key of keys) {
+    const match = await bcrypt.compare(apiKey, key.key_hash);
+    if (match) {
+      // Update last_used_at (fire and forget)
+      database.query('UPDATE api_keys SET last_used_at = NOW() WHERE id = ?', [key.id]).catch(() => {});
+      return {
+        id: key.user_id,
+        username: key.username,
+        role: key.role || 'user',
+        is_active: key.is_active,
+        created_at: key.created_at
+      };
+    }
+  }
+
+  return null;
+};
+
+/**
  * JWT Authentication Middleware
- * Validates JWT tokens and adds user info to request object
+ * Validates JWT tokens or API keys and adds user info to request object
  */
 const authenticateToken = async (req, res, next) => {
   try {
+    // Check for API key first (X-API-Key header)
+    const apiKey = req.headers['x-api-key'];
+    if (apiKey) {
+      const user = await authenticateApiKey(apiKey);
+      if (user) {
+        req.user = user;
+        return next();
+      }
+      return res.status(401).json({
+        success: false,
+        error: 'Invalid API key'
+      });
+    }
+
     // Token lookup: 1. Authorization header, 2. HttpOnly cookie (SSO login)
     const authHeader = req.headers['authorization'];
     let token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN

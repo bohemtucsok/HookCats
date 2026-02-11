@@ -341,6 +341,26 @@ class API {
         throw new Error(response.error || 'Failed to change language');
     }
 
+    // === API Keys ===
+
+    async getApiKeys() {
+        const response = await this.get('/profile/api-keys');
+        if (response.success) return response.data;
+        throw new Error(response.error || 'Failed to fetch API keys');
+    }
+
+    async createApiKey(name) {
+        const response = await this.post('/profile/api-keys', { name });
+        if (response.success) return response.data;
+        throw new Error(response.error || 'Failed to create API key');
+    }
+
+    async deleteApiKey(id) {
+        const response = await this.delete(`/profile/api-keys/${id}`);
+        if (response.success) return response.data;
+        throw new Error(response.error || 'Failed to delete API key');
+    }
+
     // === Settings API ===
 
     async getSettings() {

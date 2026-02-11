@@ -474,6 +474,21 @@
       "min_length_help": "Must be at least 6 characters long",
       "button": "Save password"
     },
+    "api_keys": {
+      "title": "API Keys",
+      "description": "Generate API keys for MCP servers and external integrations.",
+      "name_label": "Key name",
+      "generate": "Generate API Key",
+      "warning": "Save this key now. It will not be shown again!",
+      "copied": "API key copied to clipboard",
+      "created": "API key created successfully",
+      "deleted": "API key deleted",
+      "name_required": "Please enter a name for the API key",
+      "confirm_delete": "Are you sure you want to delete the API key \"{{name}}\"?",
+      "last_used": "Last used:",
+      "never_used": "Never used",
+      "none": "No API keys yet. Generate one to get started."
+    },
     "validation": {
       "username_required": "Username cannot be empty",
       "username_same": "The new username is the same as the current one",

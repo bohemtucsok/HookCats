@@ -1613,8 +1613,8 @@ class WebhookApp {
 
             return `
                 <tr>
-                    <td>${source ? window.api.escapeHtml(source.name) : 'N/A'}</td>
-                    <td>${target ? window.api.escapeHtml(target.name) : 'N/A'}</td>
+                    <td>${source ? window.api.escapeHtml(source.name) : window.api.escapeHtml(route.source_name || 'N/A')}</td>
+                    <td>${target ? window.api.escapeHtml(target.name) : window.api.escapeHtml(route.target_name || 'N/A')}</td>
                     <td><code>${window.api.truncate(route.message_template || i18n.t('routes.template_default'), 50)}</code></td>
                     <td>${window.api.formatDate(route.created_at)}</td>
                     <td>${window.api.generateActionButtons(route, 'Route')}</td>
@@ -1928,7 +1928,7 @@ class WebhookApp {
 
             return `
                 <tr>
-                    <td>${source ? window.api.escapeHtml(source.name) : 'N/A'}</td>
+                    <td>${source ? window.api.escapeHtml(source.name) : window.api.escapeHtml(event.source_name || 'N/A')}</td>
                     <td>${window.api.escapeHtml(event.event_type || 'N/A')}</td>
                     <td>${window.api.formatDate(event.received_at)}</td>
                     <td>${window.api.formatDate(event.processed_at)}</td>
@@ -2086,7 +2086,7 @@ class WebhookApp {
             return `
                 <tr>
                     <td>${delivery.event_id}</td>
-                    <td>${target ? window.api.escapeHtml(target.name) : 'N/A'}</td>
+                    <td>${target ? window.api.escapeHtml(target.name) : window.api.escapeHtml(delivery.target_name || 'N/A')}</td>
                     <td>${window.api.generateStatusBadge(delivery.status)}</td>
                     <td>${delivery.attempts || 0}</td>
                     <td>${delivery.last_error ? window.api.truncate(delivery.last_error, 50) : '-'}</td>
@@ -2136,7 +2136,7 @@ class WebhookApp {
                         </div>
                         <div class="form-group">
                             <label>${i18n.t('deliveries.labels.target')}</label>
-                            <div class="form-control">${target ? target.name : 'N/A'}</div>
+                            <div class="form-control">${target ? target.name : (delivery.target_name || 'N/A')}</div>
                         </div>
                         <div class="form-group">
                             <label>${i18n.t('deliveries.labels.status')}</label>
@@ -2711,6 +2711,7 @@ class WebhookApp {
         try {
             const profile = await window.api.getProfile();
             this.renderProfile(profile);
+            this.loadApiKeys();
         } catch (error) {
             console.error('Error loading profile:', error);
             this.showToast('error', i18n.t('common.error'), i18n.t('profile.errors.load'));
@@ -2782,6 +2783,25 @@ class WebhookApp {
                     await this.handlePasswordChange();
                 });
                 console.log('Password form handler set up successfully');
+            }
+
+            // API key generate button
+            const generateBtn = document.getElementById('generateApiKeyBtn');
+            if (generateBtn) {
+                generateBtn.addEventListener('click', async () => {
+                    await this.handleGenerateApiKey();
+                });
+            }
+
+            // API key copy button
+            const copyBtn = document.getElementById('copyApiKeyBtn');
+            if (copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    const keyValue = document.getElementById('apiKeyValue').textContent;
+                    navigator.clipboard.writeText(keyValue).then(() => {
+                        this.showToast('success', i18n.t('common.success'), i18n.t('profile.api_keys.copied'));
+                    });
+                });
             }
         }, 100);
     }
@@ -2876,6 +2896,95 @@ class WebhookApp {
         } catch (error) {
             console.error('Error changing password:', error);
             this.showToast('error', i18n.t('common.error'), error.message || i18n.t('profile.errors.change_password'));
+        }
+    }
+
+    // === API Key Management ===
+
+    /**
+     * Load API keys list
+     */
+    async loadApiKeys() {
+        try {
+            const keys = await window.api.getApiKeys();
+            this.renderApiKeys(keys);
+        } catch (error) {
+            console.error('Error loading API keys:', error);
+        }
+    }
+
+    /**
+     * Render API keys list
+     */
+    renderApiKeys(keys) {
+        const container = document.getElementById('apiKeysList');
+        if (!container) return;
+
+        if (!keys || keys.length === 0) {
+            container.innerHTML = `<p class="empty-state">${i18n.t('profile.api_keys.none')}</p>`;
+            return;
+        }
+
+        container.innerHTML = keys.map(key => `
+            <div class="api-key-item">
+                <div class="api-key-info">
+                    <span class="api-key-name">${window.api.escapeHtml(key.name)}</span>
+                    <code class="api-key-prefix">${window.api.escapeHtml(key.key_prefix)}...</code>
+                    <span class="api-key-date">${key.last_used_at ? i18n.t('profile.api_keys.last_used') + ' ' + window.api.formatDate(key.last_used_at) : i18n.t('profile.api_keys.never_used')}</span>
+                </div>
+                <button class="btn btn-danger btn-sm" onclick="app.handleDeleteApiKey(${key.id}, '${window.api.escapeHtml(key.name)}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+
+    /**
+     * Handle API key generation
+     */
+    async handleGenerateApiKey() {
+        const nameInput = document.getElementById('apiKeyName');
+        const name = nameInput.value.trim();
+
+        if (!name) {
+            this.showToast('error', i18n.t('common.error'), i18n.t('profile.api_keys.name_required'));
+            return;
+        }
+
+        try {
+            const result = await window.api.createApiKey(name);
+
+            // Show the generated key
+            const resultDiv = document.getElementById('apiKeyResult');
+            const keyValueEl = document.getElementById('apiKeyValue');
+            keyValueEl.textContent = result.key;
+            resultDiv.style.display = 'block';
+
+            // Clear input
+            nameInput.value = '';
+
+            // Reload keys list
+            this.showToast('success', i18n.t('common.success'), i18n.t('profile.api_keys.created'));
+            await this.loadApiKeys();
+        } catch (error) {
+            console.error('Error generating API key:', error);
+            this.showToast('error', i18n.t('common.error'), error.message);
+        }
+    }
+
+    /**
+     * Handle API key deletion
+     */
+    async handleDeleteApiKey(id, name) {
+        if (!confirm(i18n.t('profile.api_keys.confirm_delete', { name }))) return;
+
+        try {
+            await window.api.deleteApiKey(id);
+            this.showToast('success', i18n.t('common.success'), i18n.t('profile.api_keys.deleted'));
+            await this.loadApiKeys();
+        } catch (error) {
+            console.error('Error deleting API key:', error);
+            this.showToast('error', i18n.t('common.error'), error.message);
         }
     }
 

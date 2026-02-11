@@ -124,7 +124,7 @@ class WebhookController {
   /**
    * Determine event type from payload
    * @param {Object} payload - Webhook payload
-   * @param {string} sourceType - Source type (synology, proxmox, proxmox_backup, generic)
+   * @param {string} sourceType - Source type
    * @returns {string} - Event type
    */
   determineEventType(payload, sourceType) {
@@ -148,6 +148,21 @@ class WebhookController {
       if (payload.status) return `backup_${payload.status}`;
       if (payload.type) return payload.type;
       return 'proxmox_backup_event';
+    } else if (sourceType === 'gitlab') {
+      if (payload.object_kind) return payload.object_kind;
+      if (payload.event_name) return payload.event_name;
+      if (payload.event_type) return payload.event_type;
+      return 'gitlab_event';
+    } else if (sourceType === 'uptime-kuma') {
+      if (payload.heartbeat && payload.heartbeat.status !== undefined) {
+        return payload.heartbeat.status === 1 ? 'monitor_up' : 'monitor_down';
+      }
+      if (payload.msg) return 'uptime_alert';
+      return 'uptime_event';
+    } else if (sourceType === 'docker_updater') {
+      if (payload.text) return 'container_update';
+      if (payload.title) return 'container_update';
+      return 'docker_event';
     } else if (sourceType === 'media-webhook') {
       if (payload.text) {
         const text = payload.text.toLowerCase();
@@ -165,6 +180,12 @@ class WebhookController {
         if (username.includes('bazarr')) return 'bazarr_event';
       }
       return 'media_event';
+    } else if (sourceType === 'generic') {
+      if (payload.event_type) return payload.event_type;
+      if (payload.type) return payload.type;
+      if (payload.event) return payload.event;
+      if (payload.action) return payload.action;
+      return 'generic_event';
     }
 
     return 'unknown_event';

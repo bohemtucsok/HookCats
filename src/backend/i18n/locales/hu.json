@@ -84,6 +84,12 @@
     "minimum_role_required": "Legalább {{role}} jogosultság szükséges",
     "user_already_has_role": "A felhasználó már rendelkezik {{role}} szerepkörrel"
   },
+  "api_keys": {
+    "name_required": "API kulcs neve kötelező (max 100 karakter)",
+    "created": "API kulcs létrehozva. Mentse el most — többé nem fog megjelenni.",
+    "not_found": "API kulcs nem található",
+    "deleted": "API kulcs törölve"
+  },
   "validation": {
     "failed": "Validáció sikertelen",
     "name_length": "A név 1-100 karakter hosszú legyen",

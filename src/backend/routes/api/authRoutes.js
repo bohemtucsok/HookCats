@@ -56,4 +56,9 @@ protectedRouter.put('/profile/username', authController.changeUsernameValidation
 protectedRouter.put('/profile/password', authController.changePasswordValidation, authController.changePassword);
 protectedRouter.put('/profile/language', authController.changeLanguage);
 
+// API key management
+protectedRouter.get('/profile/api-keys', authController.listApiKeys);
+protectedRouter.post('/profile/api-keys', authController.createApiKey);
+protectedRouter.delete('/profile/api-keys/:id', authController.deleteApiKey);
+
 module.exports = { publicRouter, protectedRouter };

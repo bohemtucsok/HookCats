@@ -1,6 +1,6 @@
 -- Webhook Server Database Schema (Consolidated)
 -- MySQL 8.0 compatible
--- All migrations 001-012 are included in this baseline schema
+-- All migrations 001-014 are included in this baseline schema
 
 -- Create database if not exists
 CREATE DATABASE IF NOT EXISTS webhook_db;
@@ -173,6 +173,21 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     user_agent TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- API keys table for MCP server and external integrations
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    key_hash VARCHAR(255) NOT NULL,
+    key_prefix VARCHAR(10) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    last_used_at TIMESTAMP NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    INDEX idx_api_keys_key_hash (key_hash),
+    INDEX idx_api_keys_user_id (user_id)
 );
 
 -- Insert default admin user (username: admin, password: admin123)

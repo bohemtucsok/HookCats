@@ -1,4 +1,5 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const { body, validationResult } = require('express-validator');
 const database = require('../config/database');
 const { generateToken } = require('../middleware/auth');
@@ -970,6 +971,83 @@ const changeLanguage = asyncHandler(async (req, res) => {
   res.json({ success: true, data: { language } });
 });
 
+/**
+ * List user's API keys
+ * GET /api/profile/api-keys
+ */
+const listApiKeys = asyncHandler(async (req, res) => {
+  const keys = await database.query(
+    'SELECT id, key_prefix, name, is_active, last_used_at, created_at FROM api_keys WHERE user_id = ? ORDER BY created_at DESC',
+    [req.user.id]
+  );
+
+  res.json({ success: true, data: keys });
+});
+
+/**
+ * Generate a new API key
+ * POST /api/profile/api-keys
+ */
+const createApiKey = asyncHandler(async (req, res) => {
+  const { name } = req.body;
+
+  if (!name || name.trim().length === 0 || name.trim().length > 100) {
+    return res.status(400).json({
+      success: false,
+      error: req.t ? req.t('api_keys.name_required') : 'API key name is required (max 100 characters)'
+    });
+  }
+
+  // Generate random API key: hc_ + 48 random bytes hex = 99 chars
+  const rawKey = 'hc_' + crypto.randomBytes(48).toString('hex');
+  const keyPrefix = rawKey.substring(0, 7); // "hc_xxxx"
+
+  // Hash the key with bcrypt
+  const keyHash = await bcrypt.hash(rawKey, 12);
+
+  const result = await database.query(
+    'INSERT INTO api_keys (user_id, key_hash, key_prefix, name) VALUES (?, ?, ?, ?)',
+    [req.user.id, keyHash, keyPrefix, name.trim()]
+  );
+
+  res.status(201).json({
+    success: true,
+    data: {
+      id: result.insertId,
+      key: rawKey,
+      key_prefix: keyPrefix,
+      name: name.trim(),
+      message: req.t ? req.t('api_keys.created') : 'API key created. Save it now — it will not be shown again.'
+    }
+  });
+});
+
+/**
+ * Delete (revoke) an API key
+ * DELETE /api/profile/api-keys/:id
+ */
+const deleteApiKey = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Only allow deleting own keys
+  const result = await database.query(
+    'DELETE FROM api_keys WHERE id = ? AND user_id = ?',
+    [id, req.user.id]
+  );
+
+  if (result.affectedRows === 0) {
+    return res.status(404).json({
+      success: false,
+      error: req.t ? req.t('api_keys.not_found') : 'API key not found'
+    });
+  }
+
+  res.json({
+    success: true,
+    data: { message: req.t ? req.t('api_keys.deleted') : 'API key deleted' }
+  });
+});
+
 module.exports = {
   login,
   getCurrentUser,
@@ -981,6 +1059,10 @@ module.exports = {
   changeLanguage,
   getProfile,
   findOrCreateSSOUser,
+  // API key management
+  listApiKeys,
+  createApiKey,
+  deleteApiKey,
   // RBAC user management functions
   updateUserRole,
   setUserActive,

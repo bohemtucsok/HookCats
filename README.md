@@ -12,6 +12,7 @@
   <a href="#supported-sources">Sources</a> &bull;
   <a href="#configuration">Configuration</a> &bull;
   <a href="#api-reference">API</a> &bull;
+  <a href="#mcp-server">MCP</a> &bull;
   <a href="#license">License</a>
 </p>
 
@@ -20,6 +21,7 @@
   <img src="https://img.shields.io/badge/docker-ready-blue" alt="Docker Ready" />
   <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT License" />
   <img src="https://img.shields.io/badge/i18n-EN%20%7C%20HU-orange" alt="Bilingual" />
+  <img src="https://img.shields.io/badge/MCP-enabled-purple" alt="MCP Server" />
 </p>
 
 ---
@@ -277,7 +279,7 @@ curl -X POST https://hooks.yourdomain.com/webhook/<secret_key> \
 
 ## API Reference
 
-All protected endpoints require a JWT token via `Authorization: Bearer <token>`.
+All protected endpoints require either a JWT token via `Authorization: Bearer <token>` or an API key via `X-API-Key: hc_...` header. Generate API keys from **Profile > API Keys** in the admin panel.
 
 ### Authentication
 
@@ -287,6 +289,9 @@ GET  /api/sso/login                # SSO redirect
 GET  /api/sso/callback             # SSO callback
 GET  /api/me                       # Current user profile
 PUT  /api/profile/language         # Update language preference
+GET  /api/profile/api-keys         # List your API keys
+POST /api/profile/api-keys         # Generate a new API key
+DELETE /api/profile/api-keys/:id   # Revoke an API key
 ```
 
 ### Webhook Ingress (no auth)
@@ -337,6 +342,59 @@ GET /api/dashboard/recent-events   # Recent events feed
 
 ---
 
+## MCP Server
+
+HookCats includes a built-in [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server, allowing AI assistants like Claude Desktop or Claude Code to manage your webhooks directly.
+
+### Setup
+
+1. Generate an API key: **Profile > API Keys > Generate**
+2. Install MCP server dependencies:
+
+```bash
+cd mcp-server && npm install
+```
+
+3. Add to your MCP client config (e.g. Claude Desktop `claude_desktop_config.json` or `.mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "hookcats": {
+      "command": "node",
+      "args": ["mcp-server/src/index.js"],
+      "env": {
+        "HOOKCATS_URL": "https://hooks.yourdomain.com",
+        "HOOKCATS_API_KEY": "hc_your_api_key_here"
+      }
+    }
+  }
+}
+```
+
+### Available Tools (16)
+
+| Tool | Description |
+|------|-------------|
+| `hookcats_get_dashboard` | Dashboard overview with statistics |
+| `hookcats_get_recent_events` | Most recent webhook events |
+| `hookcats_list_sources` | List all webhook sources |
+| `hookcats_create_source` | Create a new source |
+| `hookcats_delete_source` | Delete a source (checks routes first) |
+| `hookcats_list_targets` | List all notification targets |
+| `hookcats_create_target` | Create a new target |
+| `hookcats_delete_target` | Delete a target |
+| `hookcats_list_routes` | List all source-to-target routes |
+| `hookcats_create_route` | Create a new route |
+| `hookcats_delete_route` | Delete a route |
+| `hookcats_list_events` | List webhook events |
+| `hookcats_get_event` | Get event details with payload |
+| `hookcats_get_event_stats` | Event statistics (24h/7d/30d) |
+| `hookcats_list_deliveries` | List delivery attempts |
+| `hookcats_test_delivery` | Send a test notification |
+
+---
+
 ## Tech Stack
 
 | Layer | Technology |
@@ -344,7 +402,7 @@ GET /api/dashboard/recent-events   # Recent events feed
 | Backend | Node.js 18 + Express.js |
 | Database | MySQL 8.0 |
 | Frontend | Vanilla JS (no framework, no build step) |
-| Auth | JWT + bcrypt + OAuth2/OIDC SSO |
+| Auth | JWT + API keys + bcrypt + OAuth2/OIDC SSO |
 | Encryption | AES-256-GCM (settings), bcrypt (passwords) |
 | Infrastructure | Docker + Docker Compose |
 | i18n | English + Hungarian |

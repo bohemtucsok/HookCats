@@ -114,7 +114,8 @@ async function runMigrations() {
             '010_add_media_webhook_type',
             '011_add_account_lockout',
             '012_docker_updater_source',
-            '013_add_preferred_language'
+            '013_add_preferred_language',
+            '014_add_api_keys'
           ];
 
           for (const baselineVersion of baselineMigrations) {
