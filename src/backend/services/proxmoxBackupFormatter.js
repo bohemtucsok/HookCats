@@ -61,8 +61,10 @@ class ProxmoxBackupFormatter {
    */
   _createStartedMessage(backupInfo) {
     const vms = backupInfo.vms || [];
-    const storage = backupInfo.storage || 'unknown';
-    const mode = backupInfo.mode || 'unknown';
+    const proxmoxMessage = backupInfo.message || '';
+    const extracted = this._extractFromMessage(proxmoxMessage);
+    const storage = backupInfo.storage || extracted.storage || 'unknown';
+    const mode = backupInfo.mode || extracted.mode || 'unknown';
     const totalVms = backupInfo.total_vms || vms.length;
 
     const messageLines = [
@@ -72,7 +74,7 @@ class ProxmoxBackupFormatter {
       `**Tároló:** ${storage}`,
       `**Mód:** ${mode}`,
       `**VM-ek száma:** ${totalVms}`,
-      `**Backup típus:** ${backupInfo.backup_type || 'unknown'}`
+      `**Backup típus:** ${backupInfo.backup_type || backupInfo.type || 'unknown'}`
     ];
 
     if (vms.length > 0) {
@@ -102,12 +104,29 @@ class ProxmoxBackupFormatter {
   _createCompletedMessage(backupInfo) {
     let successfulVms = backupInfo.successful_vms || [];
     let failedVms = backupInfo.failed_vms || [];
-    const storage = backupInfo.storage || 'unknown';
-    const mode = backupInfo.mode || 'unknown';
+    const proxmoxMessage = backupInfo.message || '';
+
+    // Extract missing fields from the log message if direct fields are empty
+    const extracted = this._extractFromMessage(proxmoxMessage);
+    const storage = backupInfo.storage || extracted.storage || 'unknown';
+    const mode = backupInfo.mode || extracted.mode || 'unknown';
+    const backupType = backupInfo.backup_type || backupInfo.type || 'unknown';
+
+    // Determine status from title if not provided
+    let status = backupInfo.status || '';
+    if (!status) {
+      const titleText = (backupInfo.title || '').toLowerCase();
+      if (titleText.includes('successful') || titleText.includes('finished')) {
+        status = 'sikeres';
+      } else if (titleText.includes('failed') || titleText.includes('error')) {
+        status = 'sikertelen';
+      } else {
+        status = 'unknown';
+      }
+    }
 
     // If no detailed data, try to extract from Proxmox message
     if (successfulVms.length === 0 && failedVms.length === 0) {
-      const proxmoxMessage = backupInfo.message || '';
       if (proxmoxMessage) {
         const parsed = this._parseProxmoxMessage(proxmoxMessage);
         successfulVms = parsed.successful;
@@ -124,10 +143,10 @@ class ProxmoxBackupFormatter {
       `**Hoszt:** ${backupInfo.hostname || 'unknown'}`,
       `**Tároló:** ${storage}`,
       `**Mód:** ${mode}`,
-      `**Backup típus:** ${backupInfo.backup_type || 'unknown'}`,
+      `**Backup típus:** ${backupType}`,
       `**Sikeres VM-ek:** ${successVmsStr}`,
       `**Hibás VM-ek:** ${failedVmsStr}`,
-      `**Státusz:** ${backupInfo.status || 'unknown'}`
+      `**Státusz:** ${status}`
     ];
 
     // Add detailed VM information
@@ -212,6 +231,29 @@ class ProxmoxBackupFormatter {
     ];
 
     return messageLines.join('\n');
+  }
+
+  /**
+   * Extract storage and mode from vzdump log message
+   * @private
+   */
+  _extractFromMessage(message) {
+    const result = { storage: '', mode: '' };
+    if (!message) return result;
+
+    // Extract storage from: --storage SynologyBackupServer
+    const storageMatch = message.match(/--storage\s+(\S+)/);
+    if (storageMatch) {
+      result.storage = storageMatch[1];
+    }
+
+    // Extract mode from: --mode snapshot  OR  backup mode: snapshot
+    const modeMatch = message.match(/--mode\s+(\S+)/) || message.match(/backup mode:\s+(\S+)/);
+    if (modeMatch) {
+      result.mode = modeMatch[1];
+    }
+
+    return result;
   }
 
   /**
