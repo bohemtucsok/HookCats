@@ -6,16 +6,18 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-# Install dependencies (production only)
-RUN npm install --production && npm cache clean --force
+# Install production dependencies only
+RUN npm ci --omit=dev && npm cache clean --force && rm -f package-lock.json node_modules/.package-lock.json
 
 # Stage 2: Production stage
 FROM node:18-alpine AS production
 
-# Update system packages (fix CVEs) and install curl for health checks
-RUN apk upgrade --no-cache && apk add --no-cache curl
+# Update system packages (fix CVEs), install curl for health checks, remove npm/yarn (not needed at runtime)
+RUN apk upgrade --no-cache && apk add --no-cache curl && \
+    rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx \
+           /opt/yarn-* /usr/local/bin/yarn /usr/local/bin/yarnpkg
 
 # Create app user for security (non-root)
 RUN addgroup -g 1001 -S nodejs && \
@@ -28,7 +30,7 @@ WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 
 # Copy application source code
-COPY --chown=nodejs:nodejs package*.json ./
+COPY --chown=nodejs:nodejs package.json ./
 COPY --chown=nodejs:nodejs src/ ./src/
 COPY --chown=nodejs:nodejs docker-entrypoint.sh ./
 
